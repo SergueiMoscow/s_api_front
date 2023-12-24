@@ -1,42 +1,131 @@
 import { w2field, w2grid, query } from '../w2ui/js/w2ui-2.0.es6.js'
 import { ajax, backend } from '../js/common.js'
+export let grid_bank;
+
+const getOperationsURL = 'bank/matching'
 
 let month = (new Date()).getMonth() + 1
 let year = (new Date()).getFullYear()
 
-const fillAccounts = () => {
 
+const loadOperations = async () => {
+    const inputMonth = document.getElementById("month")
+    const inputOperationType = document.getElementById("operation-types")
+    const inputAccount = document.getElementById("accounts")
+    const queryParams = {}
+    if (inputMonth) {
+        const parts = inputMonth.value.split('-')
+        queryParams['year'] = parts[0]
+        queryParams['month'] = parts[1]
+    }
+    if (inputOperationType) {
+        queryParams['type'] = inputOperationType.value
+    }
+    if (inputAccount) {
+        const selectedOption = inputAccount.options[inputAccount.selectedIndex]
+        queryParams['account'] = selectedOption.text
+    }
+    await ajax({
+        method: 'GET', 
+        url: getOperationsURL, 
+        queryParams: queryParams,
+        success: setRowsOperations
+    })
+    console.log('loadOperations')
 }
 
 const setValues = (response) => {
-    debugger;
+    const inputMonth = document.getElementById("month")
+    const inputOperationType = document.getElementById("operation-types")
+    const inputAccount = document.getElementById("accounts")
+
+    const addOptionIfNotExist = (select, value, text) => {
+        if (!Array.from(select.options).some(option => option.textContent === text)) {
+            const option = new Option(text, value);
+            select.add(option);
+        }
+    }
+
+    if (inputMonth) {
+        inputMonth.value = `${response.filter.year}-${response.filter.month}`
+        inputMonth.addEventListener('change', (event) => {
+            loadOperations()
+            console.log(`inputMonth ${event.target.value}`);
+        });
+
+    }
+    if (inputOperationType) {
+        addOptionIfNotExist(inputOperationType, "All", "All");
+        response.operation_types.forEach((type) => {
+            addOptionIfNotExist(inputOperationType, type, type);
+        });
+        if (response.filter.operation_type) {
+            inputOperationType.value = response.filter.operation_type;
+        } else {
+            inputOperationType.value = "All"; // Установить All, если operation_type равен null.
+        }
+        inputOperationType.addEventListener('change', (event) => {
+            loadOperations()
+            console.log(`inputOperationType ${event.target.value}`);
+        });
+}
+    if (inputAccount) {
+        response.accounts.forEach(account => {
+            const option = document.createElement("option");
+            option.value = account.id;
+            option.textContent = account.name;
+
+            // Устанавливаем активный элемент, если ID совпадает с переменной response.filter.account
+            if (account.name === response.filter.account) {
+                option.selected = true;
+            }
+
+            inputAccount.appendChild(option);
+    
+        });
+        // добавить обработчик события на изменение выбранного элемента в select
+        inputAccount.addEventListener('change', (event) => {
+            loadOperations()
+            console.log(event.target.value);
+        });
+}
+    setRowsOperations(response.operations)
+    // debugger;
 }
 
 const loadData = () => {
-    ajax('GET', 'bank/matching', {}, null, setValues)
+    ajax({
+        method: 'GET',
+        url: 'bank/matching',
+        success: setValues,
+    })
 }
 
 let budgets = []
 let categories = []
 
-export const columns = [
+const columns = [
     { field: 'recid', text: 'ID', size: '50px', sortable: true, resizable: true },
-    { field: 'operation_type', text: 'Тип', size: '80px', sortable: true, resizable: true},
-    { field: 'amount', text: 'money', size: '80px', sortable: true, resizable: true, render: 'money'},
-    { field: 'count', text: 'Кол.', size: '20px', sortable: true, resizable: true, render: 'int'},
-    { field: 'category', text: 'Категория', size: '100px', sortable: true, resizable: true,
+    { field: 'date', text: 'date', size: '80px', sortable: true, resizable: true },
+    { field: 'operation_type', text: 'Тип', size: '80px', sortable: true, resizable: true },
+    { field: 'amount', text: 'money', size: '80px', sortable: true, resizable: true, render: 'money' },
+    { field: 'count', text: 'Кол.', size: '30px', sortable: true, resizable: true, render: 'int' },
+    {
+        field: 'category', text: 'Категория', size: '100px', sortable: true, resizable: true,
         editable: { type: 'list', items: categories, showAll: true, openOnFocus: true, align: 'left' },
         render(record, extra) {
             return extra.value?.text || '';
         }
     },
-    { field: 'budget', text: 'Бюджет', size: '150px', sortable: true, resizable: true,
+    {
+        field: 'budget', text: 'Бюджет', size: '80px', sortable: true, resizable: true,
         editable: { type: 'combo', items: budgets, filter: true }
     },
-    { field: 'notes', text: 'Детали', size: '120px', sortable: true, resizable: true},
+    { field: 'notes', text: 'Детали', size: '120px', sortable: true, resizable: true },
+    { field: 'account', text: 'Счёт', size: '80px', sortable: true, resizable: true },
 ]
 
-export const toolbar = {
+const toolbar = {
     items: [
         { id: 'add', type: 'button', text: 'Add Record', icon: 'w2ui-icon-plus' },
         { type: 'break' },
@@ -55,7 +144,6 @@ export const toolbar = {
     }
 }
 
-// let grid = null;
 
 $(document).ready(async () => {
 
@@ -68,25 +156,50 @@ $(document).ready(async () => {
     new w2field('time', { el: query('input[type=eu-time]')[0], format: 'h24' })
     new w2field('time', { el: query('input[type=eu-timeA]')[0], format: 'h24', start: '8:00 am', end: '4:30 pm' })
     new w2field('datetime', { el: query('input[type=eu-datetime]')[0], format: 'dd.mm.yyyy|h24:mm' })
-    loadData()
     if ($('#grid-bank').length === 0) {
         console.error('Grid element #grid-bank not found.');
         return;
     }
 
-    let grid_bank = new 
-    w2grid({
-        name: 'grid-bank',
-        box: '#grid-bank',
-        show: {
-            'toolbar': true,
-            'footer': true,
-            'toolbarSave': true,
-        },
-        columns: columns,
-        toolbar: toolbar,
-        records: [],
-    
-    });
+    grid_bank = new
+        w2grid({
+            name: 'grid-bank',
+            box: '#grid-bank',
+            show: {
+                'toolbar': true,
+                'footer': true,
+                'toolbarSave': true,
+            },
+            columns: columns,
+            toolbar: toolbar,
+            records: [],
+
+        });
+    loadData()
+
     console.log('ready matching')
 })
+
+// import { grid_bank } from './bank-grid.js';
+
+const setRowsOperations = (request) => {
+    grid_bank.records = []
+    if (grid_bank && request.operations && request.operations.length > 0) {
+        request.operations.forEach(operation => {
+            grid_bank.add([{
+                recid: operation.id,
+                account: operation.account,
+                operation_type: operation.operation_type,
+                amount: operation.amount,
+                count: operation.count,
+                budget: operation.budget,
+                notes: operation.notes,
+                date: operation.date,
+                account: operation.account,
+                category: operation.category,
+            }])
+        })
+    }
+    grid_bank.refresh()
+
+}

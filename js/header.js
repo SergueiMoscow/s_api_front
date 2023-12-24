@@ -51,7 +51,12 @@ const createMenu = async (response) => {
 
 const getMenu = async () => {
     const token = getToken()
-    await ajax('GET', 'users/menu/', {}, null, createMenu)
+    await ajax({
+        method: 'GET',
+        url: 'users/menu/',
+        body: {},
+        success: createMenu,
+    })
 }
 
 $( document ).ready(async () => {

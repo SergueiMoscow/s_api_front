@@ -4,7 +4,59 @@ const getTokenFromSession = () => {
     return sessionStorage.getItem('access');
 }
 
-export const ajax = async (method, endpoint, headers = {}, body, success, error = console.error) => {
+export const ajax = async ({
+    method,
+    url,
+    headers = {},
+    body,
+    success,
+    queryParams = {},
+    error = console.error
+} = {}) => {
+    headers["Content-Type"] = "application/json";
+    const token = getTokenFromSession();
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const options = {
+        method,
+        headers,
+        credentials: "same-origin",
+        body: body ? JSON.stringify(body) : undefined
+    };
+
+    const serializeQueryParams = params => {
+        return Object.keys(params)
+            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+            .join('&');
+    };
+
+    let fullUrl = `${backend}/${url}`;
+    const queryStr = serializeQueryParams(queryParams);
+
+    // GET-запрос не должен содержать тело
+    if (method.toUpperCase() === 'GET') {
+        delete options.body;
+        if (queryStr) {
+            fullUrl += `?${queryStr}`;
+        }
+    }
+
+    const response = fetch(`${fullUrl}`, options)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => success(data))
+        .catch(error => console.error('Error: ', error));
+};
+
+
+export const ajaxOld = async (method, endpoint, headers = {}, body, success, queryString_ = {}, error = console.error) => {
     headers["Content-Type"] = "application/json"
     const token = getTokenFromSession()
     if (token) {
@@ -17,9 +69,17 @@ export const ajax = async (method, endpoint, headers = {}, body, success, error 
         body: body ? JSON.stringify(body) : undefined
     };
 
+    const serializeQueryParams = params => {
+        return Object.keys(params).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`).join('&');
+    };
+    const queryString = serializeQueryParams(queryParams);
+
     // GET-запрос не должен содержать тело
     if (method.toUpperCase() === 'GET') {
         delete options.body;
+        if (queryString) {
+            url += `?${queryString}`;
+        }
     }
 
     const response = fetch(`${backend}/${endpoint}`, options)
@@ -64,16 +124,15 @@ const saveTokenFromResponse = (response) => {
 
 const refreshToken = async function () {
     const refreshToken = sessionStorage.getItem('refresh');
-    return await ajax(
-        'POST',
-        'refresh/',
-        {},
-        {"refresh": refreshToken},
-        saveTokenFromResponse
-    )
+    return await ajax({
+        method: 'POST',
+        url: 'refresh/',
+        body: { "refresh": refreshToken },
+        success: saveTokenFromResponse,
+    })
 }
 
-export const getToken = async function() {
+export const getToken = async function () {
     const accessToken = sessionStorage.getItem('access');
     if (accessToken) {
         const expirationTime = getTokenExpirationTime(accessToken);

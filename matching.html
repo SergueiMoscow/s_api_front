@@ -1,0 +1,52 @@
+<script type="module" src="js/matching.js"></script>
+<!-- <script type="module">
+    import { grid } from 'js/matching.js'
+</script> -->
+<!--div class="row g-4 py-5 row-cols-1 row-cols-lg-3"-->
+<div class="row mx-5">
+    <div class="feature col d-flex justify-content-center">
+        <div class="col-md-5">
+            <label for="operation-type" class="form-label">Тип операции</label>
+            <select class="form-select" id="operation-types" required="">
+                <option value="">Choose...</option>
+            </select>
+        </div>
+    </div>
+    <div class="feature col d-flex justify-content-center">
+        <div class="col-md-5">
+            <label for="account" class="form-label">Счёт</label>
+            <select class="form-select" id="accounts" required="">
+                <option value="">Choose...</option>
+            </select>
+        </div>
+    </div>
+    <div class="feature col d-flex justify-content-center">
+        <div class="col-md-5">
+            <label for="account" class="form-label">Месяц</label>
+            <input type="month" class="form-select" id="month" required="">
+            </select>
+        </div>
+    </div>
+</div>
+<div class="row mx-5">
+    <div id="grid-bank" style="width: 1000px; height: 400px;"></div>
+</div>
+<!-- 
+<script type="module">
+    import { w2grid } from './w2ui/js/w2ui-2.0.es6.js'
+    import { columns, toolbar } from './js/matching.js'
+    let grid_bank = new w2grid({
+        name: 'grid-bank',
+        box: '#grid-bank',
+        show: {
+            'toolbar': true,
+            'footer': true,
+            'toolbarSave': true,
+        },
+        columns: columns,
+        toolbar: toolbar,
+        records: [],
+
+    });
+
+</script> -->

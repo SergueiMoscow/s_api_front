@@ -1,0 +1,14 @@
+.block {
+    padding-top: 20px;
+    padding-bottom: 10px;
+    color: #999;
+}
+.w2ui-field input {
+    width: 90px;
+}
+.w2ui-field.dt input {
+    width: 140px;
+}
+.w2ui-field > div > span {
+    margin-left: 20px;
+}

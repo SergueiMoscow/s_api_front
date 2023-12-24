@@ -56,44 +56,6 @@ export const ajax = async ({
 };
 
 
-export const ajaxOld = async (method, endpoint, headers = {}, body, success, queryString_ = {}, error = console.error) => {
-    headers["Content-Type"] = "application/json"
-    const token = getTokenFromSession()
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-    }
-    const options = {
-        method: method,
-        headers: headers,
-        credentials: "same-origin",
-        body: body ? JSON.stringify(body) : undefined
-    };
-
-    const serializeQueryParams = params => {
-        return Object.keys(params).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`).join('&');
-    };
-    const queryString = serializeQueryParams(queryParams);
-
-    // GET-запрос не должен содержать тело
-    if (method.toUpperCase() === 'GET') {
-        delete options.body;
-        if (queryString) {
-            url += `?${queryString}`;
-        }
-    }
-
-    const response = fetch(`${backend}/${endpoint}`, options)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => success(data))
-        .catch(error => console.error('Error: ', error));
-
-}
-
 const base64UrlDecode = (str) => {
     // Заменяем символы '-' и '_' на соответствующие '+', '/'
     let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -147,7 +109,8 @@ export const getToken = async function () {
                 let newAccessToken = sessionStorage.getItem('access');
                 // if (newAccessToken == accessToken) debugger;
                 if (accessToken) {
-                    return accessToken
+                    console.log('Токен успешно обновлен');
+                    return newAccessToken
                 }
                 console.log('Не удалось обновить токен')
                 return null

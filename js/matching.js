@@ -88,7 +88,10 @@ const setValues = (response) => {
             loadOperations()
             console.log(event.target.value);
         });
-}
+        grid_bank.columns[6].editable.items = response.categories.map(category => category.name)
+
+    }
+
     setRowsOperations(response.operations)
     // debugger;
 }
@@ -110,9 +113,10 @@ const columns = [
     { field: 'operation_type', text: 'Тип', size: '80px', sortable: true, resizable: true },
     { field: 'amount', text: 'money', size: '80px', sortable: true, resizable: true, render: 'money' },
     { field: 'count', text: 'Кол.', size: '30px', sortable: true, resizable: true, render: 'int' },
+    { field: 'bank_category', text: 'Кат.банка', size: '100px', sortable: true, resizable: true },
     {
         field: 'category', text: 'Категория', size: '100px', sortable: true, resizable: true,
-        editable: { type: 'list', items: categories, showAll: true, openOnFocus: true, align: 'left' },
+        editable: { type: 'combo', items: categories, showAll: true, openOnFocus: true, align: 'left' },
         render(record, extra) {
             return extra.value?.text || '';
         }
@@ -183,23 +187,25 @@ $(document).ready(async () => {
 // import { grid_bank } from './bank-grid.js';
 
 const setRowsOperations = (request) => {
+    console.time('setRowOperations')
     grid_bank.records = []
-    if (grid_bank && request.operations && request.operations.length > 0) {
-        request.operations.forEach(operation => {
-            grid_bank.add([{
-                recid: operation.id,
-                account: operation.account,
-                operation_type: operation.operation_type,
-                amount: operation.amount,
-                count: operation.count,
-                budget: operation.budget,
-                notes: operation.notes,
-                date: operation.date,
-                account: operation.account,
-                category: operation.category,
-            }])
-        })
+
+    if (request.operations && request.operations.length > 0) {
+        const rowsToAdd = request.operations.map(operation => ({
+            recid: operation.id,
+            account: operation.account,
+            operation_type: operation.operation_type,
+            amount: operation.amount,
+            count: operation.count,
+            budget: operation.budget,
+            notes: operation.notes,
+            date: operation.date,
+            bank_category: operation.category,
+            w2ui: {style: 'color: #333333'}
+        }));
+
+        grid_bank.add(rowsToAdd); // Добавить все записи за один раз
     }
     grid_bank.refresh()
-
+    console.timeEnd('setRowOperations')
 }

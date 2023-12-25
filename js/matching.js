@@ -1,10 +1,11 @@
 import { w2field, w2grid, query } from '../w2ui/js/w2ui-2.0.es6.js'
 import { ajax, backend } from '../js/common.js'
 export let grid_bank;
+export let grid_match;
 
-const getOperationsURL = 'bank/matching'
-
-let month = (new Date()).getMonth() + 1
+const getOperationsURL = 'bank/operations'
+// TODO: Убрать коммент + 1 из getMonth. Это только для разработки!!!
+let month = (new Date()).getMonth() // + 1
 let year = (new Date()).getFullYear()
 
 
@@ -26,8 +27,8 @@ const loadOperations = async () => {
         queryParams['account'] = selectedOption.text
     }
     await ajax({
-        method: 'GET', 
-        url: getOperationsURL, 
+        method: 'GET',
+        url: getOperationsURL,
         queryParams: queryParams,
         success: setRowsOperations
     })
@@ -68,7 +69,7 @@ const setValues = (response) => {
             loadOperations()
             console.log(`inputOperationType ${event.target.value}`);
         });
-}
+    }
     if (inputAccount) {
         response.accounts.forEach(account => {
             const option = document.createElement("option");
@@ -81,7 +82,7 @@ const setValues = (response) => {
             }
 
             inputAccount.appendChild(option);
-    
+
         });
         // добавить обработчик события на изменение выбранного элемента в select
         inputAccount.addEventListener('change', (event) => {
@@ -99,7 +100,7 @@ const setValues = (response) => {
 const loadData = () => {
     ajax({
         method: 'GET',
-        url: 'bank/matching',
+        url: getOperationsURL,
         success: setValues,
     })
 }
@@ -107,7 +108,7 @@ const loadData = () => {
 let budgets = []
 let categories = []
 
-const columns = [
+const columns_op = [
     { field: 'recid', text: 'ID', size: '50px', sortable: true, resizable: true },
     { field: 'date', text: 'date', size: '80px', sortable: true, resizable: true },
     { field: 'operation_type', text: 'Тип', size: '80px', sortable: true, resizable: true },
@@ -129,7 +130,7 @@ const columns = [
     { field: 'account', text: 'Счёт', size: '80px', sortable: true, resizable: true },
 ]
 
-const toolbar = {
+const toolbar_op = {
     items: [
         { id: 'add', type: 'button', text: 'Add Record', icon: 'w2ui-icon-plus' },
         { type: 'break' },
@@ -137,7 +138,7 @@ const toolbar = {
     ],
     onClick(event) {
         if (event.target == 'add') {
-            let recid = grid.records.length + 1
+            let recid = grid_bank.records.length + 1
             this.owner.add({ recid });
             this.owner.scrollIntoView(recid);
             this.owner.editField(recid, 1)
@@ -148,6 +149,34 @@ const toolbar = {
     }
 }
 
+const columns_match = [
+    { field: 'recid', text: 'ID', size: '50px', sortable: true, resizable: true },
+    { field: 'date', text: 'date', size: '80px', sortable: true, resizable: true },
+    { field: 'amount', text: 'money', size: '80px', sortable: true, resizable: true, render: 'money' },
+    { field: 'count', text: 'Кол.', size: '30px', sortable: true, resizable: true, render: 'int' },
+    { field: 'category', text: 'Категория', size: '100px', sortable: true, resizable: true },
+    { field: 'time', text: 'time', size: '80px', sortable: true, resizable: true },
+]
+
+
+const toolbar_match = {
+    items: [
+        { id: 'add', type: 'button', text: 'Add Record', icon: 'w2ui-icon-plus' },
+        { type: 'break' },
+        { type: 'button', id: 'showChanges', text: 'Show Changes' }
+    ],
+    onClick(event) {
+        if (event.target == 'add') {
+            let recid = grid_match.records.length + 1
+            this.owner.add({ recid });
+            this.owner.scrollIntoView(recid);
+            this.owner.editField(recid, 1)
+        }
+        if (event.target == 'showChanges') {
+            showChanged()
+        }
+    }
+}
 
 $(document).ready(async () => {
 
@@ -174,11 +203,36 @@ $(document).ready(async () => {
                 'footer': true,
                 'toolbarSave': true,
             },
-            columns: columns,
-            toolbar: toolbar,
+            columns: columns_op,
+            toolbar: toolbar_op,
             records: [],
 
         });
+
+    grid_match = new
+        w2grid({
+            name: 'grid-match',
+            box: '#grid-match',
+            show: {
+                'toolbar': true,
+                'footer': true,
+                'toolbarSave': true,
+            },
+            columns: columns_match,
+            toolbar: toolbar_match,
+            records: [],
+
+        });
+
+    grid_bank.on('*', (event) => {
+        // console.log(event)
+        let recid = event.detail.recid ?? event.detail.clicked?.recid
+        if (event.type == 'click') {
+            const txt = 'rec: ' + recid
+            console.log(txt)
+        }
+    })
+
     loadData()
 
     console.log('ready matching')
@@ -201,7 +255,7 @@ const setRowsOperations = (request) => {
             notes: operation.notes,
             date: operation.date,
             bank_category: operation.category,
-            w2ui: {style: 'color: #333333'}
+            w2ui: { style: 'color: #333333' }
         }));
 
         grid_bank.add(rowsToAdd); // Добавить все записи за один раз

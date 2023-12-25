@@ -26,7 +26,14 @@ const login = (user, password) => {
     }
   };
 
-  ajax('POST', url, headers, body, success);
+  ajax(
+    {
+      method:'POST',
+      url: url,
+      headers: headers,
+      body: body,
+      success: success
+    });
 };
 
 $( document ).ready( async () => {

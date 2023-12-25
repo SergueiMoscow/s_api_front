@@ -12,3 +12,8 @@
 .w2ui-field > div > span {
     margin-left: 20px;
 }
+
+.bank-grids {
+    display: inline-flex;
+    margin: 1em auto;
+}

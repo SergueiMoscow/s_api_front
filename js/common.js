@@ -14,7 +14,7 @@ export const ajax = async ({
     error = console.error
 } = {}) => {
     headers["Content-Type"] = "application/json";
-    const token = getTokenFromSession();
+    const token = await getToken();
 
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
@@ -81,17 +81,27 @@ const getTokenExpirationTime = (token) => {
 
 const saveTokenFromResponse = (response) => {
     // debugger;
-    return sessionStorage.setItem('access', response.access);
+    sessionStorage.setItem('access', response.access);
+    return response.access
 }
 
 const refreshToken = async function () {
     const refreshToken = sessionStorage.getItem('refresh');
-    return await ajax({
+    const options = {
+        headers: {"Content-Type": "application/json"},
         method: 'POST',
-        url: 'refresh/',
-        body: { "refresh": refreshToken },
-        success: saveTokenFromResponse,
+        body: JSON.stringify({ "refresh": refreshToken }),
+        credentials: "same-origin",
+    }
+    return await fetch(`${backend}/refresh/`, options)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error refreshToken');
+        }
+        return response.json();
     })
+    .then(data => saveTokenFromResponse(data))
+    .catch(error => console.error('Error: ', error));
 }
 
 export const getToken = async function () {
@@ -106,7 +116,7 @@ export const getToken = async function () {
                 // Токен истек, отправляем запрос на обновление 
                 console.log("Токен истек! Нужно обновить.");
                 await refreshToken()
-                let newAccessToken = sessionStorage.getItem('access');
+                let newAccessToken = await refreshToken();
                 // if (newAccessToken == accessToken) debugger;
                 if (accessToken) {
                     console.log('Токен успешно обновлен');

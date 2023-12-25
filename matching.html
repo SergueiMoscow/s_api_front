@@ -1,3 +1,4 @@
+<link rel="stylesheet" type="text/css" href="./css/matching.css">
 <script type="module" src="js/matching.js"></script>
 <!-- <script type="module">
     import { grid } from 'js/matching.js'
@@ -22,12 +23,17 @@
     </div>
     <div class="feature col d-flex justify-content-center">
         <div class="col-md-5">
-            <label for="account" class="form-label">Месяц</label>
+            <label for="month" class="form-label">Месяц</label>
             <input type="month" class="form-select" id="month" required="">
             </select>
         </div>
     </div>
 </div>
-<div class="row mx-5">
-    <div id="grid-bank" style="width: 820px; height: 400px;"></div>
+<div class="bank-grids">
+    <div class="row mx-5">
+        <div id="grid-bank" style="width: 820px; height: 400px;"></div>
+    </div>
+    <div class="row mx-5">
+        <div id="grid-match" style="width: 520px; height: 400px;"></div>
+    </div>
 </div>

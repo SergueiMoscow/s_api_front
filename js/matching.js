@@ -89,7 +89,7 @@ const setValues = (response) => {
             loadOperations()
             console.log(event.target.value);
         });
-        grid_bank.columns[6].editable.items = response.categories.map(category => category.name)
+        // grid_bank.columns[6].editable.items = response.categories.map(category => category.name)
         grid_bank.columns[7].editable.items = response.budgets.map(budget => budget.name)
 
     }
@@ -98,12 +98,46 @@ const setValues = (response) => {
     // debugger;
 }
 
+const saveCategoriesByType = (key, response) => {
+    localStorage.setItem(key, JSON.stringify(response.result))
+}
+
+const saveCategoriesExpense = (response) => {
+    saveCategoriesByType('ExpenseCategories', response)
+}
+
+const saveCategoriesIncome = (response) => {
+    saveCategoriesByType('IncomeCategories', response)
+}
+
+const getCategoriesByType = () => {
+    ajax({
+        method: 'GET',
+        url: 'budget/category?types=Income,Transfer',
+        success: saveCategoriesIncome
+    })
+    ajax({
+        method: 'GET',
+        url: 'budget/category?types=Expense,Transfer',
+        success: saveCategoriesExpense
+    })
+}
+
+
 const loadData = () => {
     ajax({
         method: 'GET',
         url: getOperationsURL,
         success: setValues,
     })
+}
+
+
+const sendMatchRequest = (bank_id, match_id) => {
+    console.log(bank_id, match_id)
+    if (bank_id.length == 0 || match_id.length == 0) {
+        return alert('В обоих списках должны быть выбраны записи')
+    }
 }
 
 let budgets = []
@@ -156,21 +190,21 @@ const columns_match = [
     { field: 'category', text: 'Категория', size: '100px', sortable: true, resizable: true },
     { field: 'notes', text: 'Заметки', size: '200px', sortable: true, resizable: true },
     { field: 'time', text: 'time', size: '80px', sortable: true, resizable: true },
+    { field: 'ids', text: 'ids', size: '10px', sortable: false, resizable: false, hidden: true },
 ]
 
 
 const toolbar_match = {
     items: [
-        { id: 'add', type: 'button', text: 'Add Record', icon: 'w2ui-icon-plus' },
+        { id: 'match', type: 'button', text: 'Match', icon: 'w2ui-icon-plus' },
         { type: 'break' },
         { type: 'button', id: 'showChanges', text: 'Show Changes' }
     ],
     onClick(event) {
-        if (event.target == 'add') {
-            let recid = grid_match.records.length + 1
-            this.owner.add({ recid });
-            this.owner.scrollIntoView(recid);
-            this.owner.editField(recid, 1)
+        if (event.target == 'match') {
+            const bank_id = grid_bank.getSelection()
+            const match_id = grid_match.getSelection()
+            sendMatchRequest(bank_id, match_id)
         }
         if (event.target == 'showChanges') {
             showChanged()
@@ -231,9 +265,15 @@ $(document).ready(async () => {
             const txt = 'rec: ' + recid
             console.log(txt)
             requestMatching(recid)
+            // Подгружаем категории для выпадающего списка
+            const transactionCategories = (grid_bank.get(recid).amount > 0 ? 'IncomeCategories' : 'ExpenseCategories')
+            grid_bank.columns[6].editable.items =
+            JSON.parse(localStorage.getItem(transactionCategories))
+            .map(category => category.name)
+
         }
     })
-
+    getCategoriesByType()
     loadData()
 
     console.log('ready matching')
@@ -276,6 +316,7 @@ const setRowsMatching = (response) => {
     grid_match.records = []
     let rowsToAdd = []
     let children = []
+    let amount = 0
     let rowsToExpand = [] // Массив для хранения recid родительских записей
     if (response.match && response.match.length > 0) {
         for (const head of response.match) {
@@ -287,6 +328,7 @@ const setRowsMatching = (response) => {
                     count: item.count,
                     notes: item.notes,
                     category: item.category_name,
+                    ids: item.ids,
                     date: new Date(item.time).toLocaleDateString(),
                     w2ui: { style: 'color: #333333' },
                 });
@@ -299,17 +341,18 @@ const setRowsMatching = (response) => {
                 count: head.count,
                 notes: head.notes,
                 category: head.category_name,
+                ids: head.ids,
                 date: head.date,
                 w2ui: {
                     style: 'color: #333333',
                     children: children,
                 },
             });
+            amount += head.amount
             if (children.length > 0) {
                 rowsToExpand.push(parentRecid); // Добавляем recid для разворачивания
             }
         }
-
         grid_match.add(rowsToAdd.flat());
     }
     rowsToExpand.forEach(recid => grid_match.expand(recid));

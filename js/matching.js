@@ -152,9 +152,11 @@ const toolbar_op = {
 const columns_match = [
     { field: 'recid', text: 'ID', size: '50px', sortable: true, resizable: true },
     { field: 'date', text: 'date', size: '80px', sortable: true, resizable: true },
+    { field: 'account', text: 'account', size: '80px', sortable: true, resizable: true },
     { field: 'amount', text: 'money', size: '80px', sortable: true, resizable: true, render: 'money' },
     { field: 'count', text: 'Кол.', size: '30px', sortable: true, resizable: true, render: 'int' },
     { field: 'category', text: 'Категория', size: '100px', sortable: true, resizable: true },
+    { field: 'notes', text: 'Заметки', size: '200px', sortable: true, resizable: true },
     { field: 'time', text: 'time', size: '80px', sortable: true, resizable: true },
 ]
 
@@ -230,6 +232,7 @@ $(document).ready(async () => {
         if (event.type == 'click') {
             const txt = 'rec: ' + recid
             console.log(txt)
+            requestMatching(recid)
         }
     })
 
@@ -240,12 +243,12 @@ $(document).ready(async () => {
 
 // import { grid_bank } from './bank-grid.js';
 
-const setRowsOperations = (request) => {
+const setRowsOperations = (response) => {
     console.time('setRowOperations')
     grid_bank.records = []
 
-    if (request.operations && request.operations.length > 0) {
-        const rowsToAdd = request.operations.map(operation => ({
+    if (response.operations && response.operations.length > 0) {
+        const rowsToAdd = response.operations.map(operation => ({
             recid: operation.id,
             account: operation.account,
             operation_type: operation.operation_type,
@@ -262,4 +265,54 @@ const setRowsOperations = (request) => {
     }
     grid_bank.refresh()
     console.timeEnd('setRowOperations')
+}
+
+const setRowsMatching = (response) => {
+    console.time('setRowsMatching')
+    let counter = 1
+    grid_match.records = []
+    let rowsToAdd = []
+    let children = []
+    if (response.match && response.match.length > 0) {
+        for (const head of response.match) {
+            for (const item of head.matched_by_time) {
+                children.push({
+                    recid: counter++,
+                    account: item.account,
+                    amount: item.amount,
+                    count: item.count,
+                    notes: item.notes,
+                    date: new Date(item.time).toLocaleDateString(),
+                    w2ui: { style: 'color: #333333' },
+                });
+            }
+    
+            rowsToAdd.push({
+                recid: counter++,
+                account: head.account,
+                amount: head.amount,
+                count: head.count,
+                notes: head.notes,
+                date: head.date,
+                w2ui: {
+                    style: 'color: #333333',
+                    children: children,
+                },
+            });
+    
+        }
+
+        grid_match.add(rowsToAdd.flat());
+    }
+    grid_match.refresh()
+    console.timeEnd('setRowsMatching')
+}
+
+const requestMatching = (operationId) => {
+    ajax({
+        method: 'GET',
+        url: 'bank/matching',
+        queryParams: {'id': operationId, 'days': 2},
+        success: setRowsMatching,
+    })
 }

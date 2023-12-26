@@ -90,6 +90,7 @@ const setValues = (response) => {
             console.log(event.target.value);
         });
         grid_bank.columns[6].editable.items = response.categories.map(category => category.name)
+        grid_bank.columns[7].editable.items = response.budgets.map(budget => budget.name)
 
     }
 
@@ -117,10 +118,7 @@ const columns_op = [
     { field: 'bank_category', text: 'Кат.банка', size: '100px', sortable: true, resizable: true },
     {
         field: 'category', text: 'Категория', size: '100px', sortable: true, resizable: true,
-        editable: { type: 'combo', items: categories, showAll: true, openOnFocus: true, align: 'left' },
-        render(record, extra) {
-            return extra.value?.text || '';
-        }
+        editable: { type: 'combo', items: categories, filter: true, align: 'left' },
     },
     {
         field: 'budget', text: 'Бюджет', size: '80px', sortable: true, resizable: true,
@@ -241,7 +239,12 @@ $(document).ready(async () => {
     console.log('ready matching')
 })
 
-// import { grid_bank } from './bank-grid.js';
+const getBgColorForOperation = (state) => {
+    if (state == 'none') return 'color: #333333'
+    if (state == 'potential') return 'color: #3333FF'
+    return 'color: #FF3333'
+}
+
 
 const setRowsOperations = (response) => {
     console.time('setRowOperations')
@@ -258,7 +261,7 @@ const setRowsOperations = (response) => {
             notes: operation.notes,
             date: operation.date,
             bank_category: operation.category,
-            w2ui: { style: 'color: #333333' }
+            w2ui: { style: getBgColorForOperation(operation.state) }
         }));
 
         grid_bank.add(rowsToAdd); // Добавить все записи за один раз
@@ -273,6 +276,7 @@ const setRowsMatching = (response) => {
     grid_match.records = []
     let rowsToAdd = []
     let children = []
+    let rowsToExpand = [] // Массив для хранения recid родительских записей
     if (response.match && response.match.length > 0) {
         for (const head of response.match) {
             for (const item of head.matched_by_time) {
@@ -282,28 +286,33 @@ const setRowsMatching = (response) => {
                     amount: item.amount,
                     count: item.count,
                     notes: item.notes,
+                    category: item.category_name,
                     date: new Date(item.time).toLocaleDateString(),
                     w2ui: { style: 'color: #333333' },
                 });
             }
-    
+            let parentRecid = counter++; // Сохраняем recid родительской записи
             rowsToAdd.push({
-                recid: counter++,
+                recid: parentRecid,
                 account: head.account,
                 amount: head.amount,
                 count: head.count,
                 notes: head.notes,
+                category: head.category_name,
                 date: head.date,
                 w2ui: {
                     style: 'color: #333333',
                     children: children,
                 },
             });
-    
+            if (children.length > 0) {
+                rowsToExpand.push(parentRecid); // Добавляем recid для разворачивания
+            }
         }
 
         grid_match.add(rowsToAdd.flat());
     }
+    rowsToExpand.forEach(recid => grid_match.expand(recid));
     grid_match.refresh()
     console.timeEnd('setRowsMatching')
 }

@@ -132,12 +132,56 @@ const loadData = () => {
     })
 }
 
+const updateGridForMatched = (response) => {
+    console.log(response)
+    if (response.result) {
+        response.result.forEach(el => {
+            const row_bank = grid_bank.get(el.operation_id)
+            row_bank.state='linked'
+            row_bank.w2ui.style=getBgColorForOperation(row_bank.state)
+            grid_bank.refreshRow(el.operation_id)
+        })
+
+    }
+}
 
 const sendMatchRequest = (bank_id, match_id) => {
     console.log(bank_id, match_id)
-    if (bank_id.length == 0 || match_id.length == 0) {
-        return alert('В обоих списках должны быть выбраны записи')
+    if (bank_id.length == 0) {
+        return alert('В списке выписки должна быть выбран как минимум одна запись')
     }
+    const cashFlowIds = [];
+    match_id.forEach(el => {
+        const item = grid_match.get(el);
+        if (item) {
+            if (item.ids !== '0') {
+            // Если 'ids' не равен нулю, просто добавляем его в массив.
+            cashFlowIds.push(parseInt(item.ids));
+            } else {
+            // Если 'ids' равен нулю, нужно искать 'ids' в 'children'.
+            if (item.w2ui && item.w2ui.children) {
+                // Перебираем всех 'children' и добавляем их 'ids' в массив.
+                item.w2ui.children.forEach(child => {
+                if (child && child.ids) {
+                    cashFlowIds.push(parseInt(child.ids));
+                }
+                });
+            }
+            }
+        }
+    });
+
+    console.log(cashFlowIds)
+    ajax({
+        method: "POST",
+        url: "bank/matching",
+        headers: {"Content-Type": "application/json"},
+        // body: {operation_ids: bank_id, cashflow_ids: cashFlowIds},
+        body: {operation_ids: bank_id, cashflow_ids: cashFlowIds},
+        credentials: "same-origin",
+        success: updateGridForMatched
+    })
+    
 }
 
 let budgets = []
@@ -160,6 +204,7 @@ const columns_op = [
     },
     { field: 'notes', text: 'Детали', size: '120px', sortable: true, resizable: true },
     { field: 'account', text: 'Счёт', size: '80px', sortable: true, resizable: true },
+    { field: 'state', text: 'State', size: '5px', hidden: true },
 ]
 
 const toolbar_op = {
@@ -281,7 +326,8 @@ $(document).ready(async () => {
 
 const getBgColorForOperation = (state) => {
     if (state == 'none') return 'color: #333333'
-    if (state == 'potential') return 'color: #3333FF'
+    if (state == 'potential') return 'color: #3333BB'
+    if (state == 'linked') return 'color: #33BB33'
     return 'color: #FF3333'
 }
 
@@ -301,6 +347,7 @@ const setRowsOperations = (response) => {
             notes: operation.notes,
             date: operation.date,
             bank_category: operation.category,
+            state: operation.state,
             w2ui: { style: getBgColorForOperation(operation.state) }
         }));
 
@@ -344,7 +391,7 @@ const setRowsMatching = (response) => {
                 ids: head.ids,
                 date: head.date,
                 w2ui: {
-                    style: 'color: #333333',
+                    style: getBgColorForOperation(head.state),
                     children: children,
                 },
             });

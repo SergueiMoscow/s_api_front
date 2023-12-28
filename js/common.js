@@ -4,6 +4,10 @@ const getTokenFromSession = () => {
     return sessionStorage.getItem('access');
 }
 
+const showError = (message) => {
+    console.log(message)
+}
+
 export const ajax = async ({
     method,
     url,
@@ -11,7 +15,8 @@ export const ajax = async ({
     body,
     success,
     queryParams = {},
-    error = console.error
+    error = console.error,
+    handleError = (message) => alert(message),
 } = {}) => {
     headers["Content-Type"] = "application/json";
     const token = await getToken();
@@ -47,12 +52,17 @@ export const ajax = async ({
     const response = fetch(`${fullUrl}`, options)
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                return response.json().then(data => {
+                    throw new Error(data.error);
+                  });
             }
             return response.json();
         })
         .then(data => success(data))
-        .catch(error => console.error('Error: ', error));
+        .catch(e => {
+            console.error('Error: ', e)
+            alert(e.message)
+        });
 };
 
 

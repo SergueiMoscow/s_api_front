@@ -13,7 +13,17 @@
     margin-left: 20px;
 }
 
-.bank-grids {
-    display: inline-flex;
-    margin: 1em auto;
+.grids {
+    display: flex;
+    justify-content: space-between;
+    margin: 1em;
+    width: calc(100% - 2em);
+}
+
+.grids .row:first-child {
+    width: calc(60% - 1.5px);
+}
+
+.grids .row:last-child {
+    width: calc(40% - 1.5px);
 }

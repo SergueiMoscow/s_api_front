@@ -133,6 +133,7 @@ const loadData = () => {
 }
 
 const updateGridForMatched = (response) => {
+    console.log('updateGridForMatched response:')
     console.log(response)
     if (response.result) {
         response.result.forEach(el => {
@@ -140,9 +141,29 @@ const updateGridForMatched = (response) => {
             row_bank.state='linked'
             row_bank.w2ui.style=getBgColorForOperation(row_bank.state)
             grid_bank.refreshRow(el.operation_id)
+            requestMatching(el.operation_id)
         })
 
     }
+}
+
+const getDataForMatchRequest = () => {
+    // Собирает категорию, бюджет, детали, счёт для отправки request с добавлением CashFlow
+    const selectedIds = grid_bank.getSelection();
+    const changes = grid_bank.getChanges().filter(change => selectedIds.includes(change.recid));
+    let category  = ''
+    let budget = ''
+    let notes = ''
+    const inputAccount = document.getElementById('accounts')
+    const account = inputAccount.options[inputAccount.selectedIndex].text
+
+    const bank_selected = grid_bank.getChanges()
+    bank_selected.forEach(row => {
+        category = category.length > row.category?.text?.length ? category : row.category.text
+        budget = budget.length > row.budget?.text?.length ? budget : row.budget?.text
+        notes = notes.length > row.notes?.text?.length ? notes : row.notes
+    })
+    return {category: category, budget: budget, notes: notes, account: account}
 }
 
 const sendMatchRequest = (bank_id, match_id) => {
@@ -170,14 +191,15 @@ const sendMatchRequest = (bank_id, match_id) => {
             }
         }
     });
+    
+    const dataForMatchRequest = getDataForMatchRequest()
 
     console.log(cashFlowIds)
     ajax({
         method: "POST",
         url: "bank/matching",
         headers: {"Content-Type": "application/json"},
-        // body: {operation_ids: bank_id, cashflow_ids: cashFlowIds},
-        body: {operation_ids: bank_id, cashflow_ids: cashFlowIds},
+        body: {operation_ids: bank_id, cashflow_ids: cashFlowIds, ...dataForMatchRequest},
         credentials: "same-origin",
         success: updateGridForMatched
     })
@@ -196,34 +218,43 @@ const columns_op = [
     { field: 'bank_category', text: 'Кат.банка', size: '100px', sortable: true, resizable: true },
     {
         field: 'category', text: 'Категория', size: '100px', sortable: true, resizable: true,
-        editable: { type: 'combo', items: categories, filter: true, align: 'left' },
+        editable: { type: 'list', items: categories, filter: true, align: 'left', openOnFocus: true, },
+        render(record, extra) {
+            return extra.value?.text || '';
+        }    
     },
     {
         field: 'budget', text: 'Бюджет', size: '80px', sortable: true, resizable: true,
-        editable: { type: 'combo', items: budgets, filter: true }
+        editable: { type: 'list', items: budgets, filter: true, openOnFocus: true, },
+        render(record, extra) {
+            return extra.value?.text || '';
+        }    
     },
-    { field: 'notes', text: 'Детали', size: '120px', sortable: true, resizable: true },
+    { 
+        field: 'notes', text: 'Детали', size: '120px', sortable: true, resizable: true, 
+        editable: { type: 'text' },
+    },
     { field: 'account', text: 'Счёт', size: '80px', sortable: true, resizable: true },
     { field: 'state', text: 'State', size: '5px', hidden: true },
 ]
 
 const toolbar_op = {
-    items: [
-        { id: 'add', type: 'button', text: 'Add Record', icon: 'w2ui-icon-plus' },
-        { type: 'break' },
-        { type: 'button', id: 'showChanges', text: 'Show Changes' }
-    ],
-    onClick(event) {
-        if (event.target == 'add') {
-            let recid = grid_bank.records.length + 1
-            this.owner.add({ recid });
-            this.owner.scrollIntoView(recid);
-            this.owner.editField(recid, 1)
-        }
-        if (event.target == 'showChanges') {
-            showChanged()
-        }
-    }
+    // items: [
+    //     { id: 'add', type: 'button', text: 'Add Record', icon: 'w2ui-icon-plus' },
+    //     { type: 'break' },
+    //     { type: 'button', id: 'showChanges', text: 'Show Changes' }
+    // ],
+    // onClick(event) {
+    //     if (event.target == 'add') {
+    //         let recid = grid_bank.records.length + 1
+    //         this.owner.add({ recid });
+    //         this.owner.scrollIntoView(recid);
+    //         this.owner.editField(recid, 1)
+    //     }
+    //     if (event.target == 'showChanges') {
+    //         showChanged()
+    //     }
+    // }
 }
 
 const columns_match = [
@@ -280,11 +311,15 @@ $(document).ready(async () => {
             show: {
                 'toolbar': true,
                 'footer': true,
-                'toolbarSave': true,
+                'toolbarSave': false,
+                'toolbarAdd': false,
+                'toolbarEdit': false,
             },
             columns: columns_op,
             toolbar: toolbar_op,
             records: [],
+            advanceOnEdit: false,
+            onReload: loadOperations,
 
         });
 

@@ -3,13 +3,13 @@ import { ajax, backend } from '../js/common.js'
 export let grid_bank;
 export let grid_match;
 
-const getOperationsURL = 'bank/operations'
+const getTransactionsURL = 'bank/transactions'
 // TODO: Убрать коммент + 1 из getMonth. Это только для разработки!!!
 let month = (new Date()).getMonth() // + 1
 let year = (new Date()).getFullYear()
 
 
-const loadOperations = async () => {
+const loadTransactions = async () => {
     const inputMonth = document.getElementById("month")
     const inputOperationType = document.getElementById("operation-types")
     const inputAccount = document.getElementById("accounts")
@@ -28,11 +28,11 @@ const loadOperations = async () => {
     }
     await ajax({
         method: 'GET',
-        url: getOperationsURL,
+        url: getTransactionsURL,
         queryParams: queryParams,
-        success: setRowsOperations
+        success: setRowsTransactions
     })
-    console.log('loadOperations')
+    console.log('loadTransactions')
 }
 
 const setValues = (response) => {
@@ -50,7 +50,7 @@ const setValues = (response) => {
     if (inputMonth) {
         inputMonth.value = `${response.filter.year}-${response.filter.month}`
         inputMonth.addEventListener('change', (event) => {
-            loadOperations()
+            loadTransactions()
             console.log(`inputMonth ${event.target.value}`);
         });
 
@@ -66,7 +66,7 @@ const setValues = (response) => {
             inputOperationType.value = "All"; // Установить All, если operation_type равен null.
         }
         inputOperationType.addEventListener('change', (event) => {
-            loadOperations()
+            loadTransactions()
             console.log(`inputOperationType ${event.target.value}`);
         });
     }
@@ -86,7 +86,7 @@ const setValues = (response) => {
         });
         // добавить обработчик события на изменение выбранного элемента в select
         inputAccount.addEventListener('change', (event) => {
-            loadOperations()
+            loadTransactions()
             console.log(event.target.value);
         });
         // grid_bank.columns[6].editable.items = response.categories.map(category => category.name)
@@ -94,7 +94,7 @@ const setValues = (response) => {
 
     }
 
-    setRowsOperations(response.operations)
+    setRowsTransactions(response.transactions)
     // debugger;
 }
 
@@ -127,7 +127,7 @@ const getCategoriesByType = () => {
 const loadData = () => {
     ajax({
         method: 'GET',
-        url: getOperationsURL,
+        url: getTransactionsURL,
         success: setValues,
     })
 }
@@ -319,7 +319,7 @@ $(document).ready(async () => {
             toolbar: toolbar_op,
             records: [],
             advanceOnEdit: false,
-            onReload: loadOperations,
+            onReload: loadTransactions,
 
         });
 
@@ -367,29 +367,29 @@ const getBgColorForOperation = (state) => {
 }
 
 
-const setRowsOperations = (response) => {
-    console.time('setRowOperations')
+const setRowsTransactions = (response) => {
+    console.time('setRowTransactions')
     grid_bank.records = []
 
-    if (response.operations && response.operations.length > 0) {
-        const rowsToAdd = response.operations.map(operation => ({
-            recid: operation.id,
-            account: operation.account,
-            operation_type: operation.operation_type,
-            amount: operation.amount,
-            count: operation.count,
-            budget: operation.budget,
-            notes: operation.notes,
-            date: operation.date,
-            bank_category: operation.category,
-            state: operation.state,
-            w2ui: { style: getBgColorForOperation(operation.state) }
+    if (response.transactions && response.transactions.length > 0) {
+        const rowsToAdd = response.transactions.map(transaction => ({
+            recid: transaction.id,
+            account: transaction.account,
+            operation_type: transaction.operation_type,
+            amount: transaction.amount,
+            count: transaction.count,
+            budget: transaction.budget,
+            notes: transaction.notes,
+            date: transaction.date,
+            bank_category: transaction.category,
+            state: transaction.state,
+            w2ui: { style: getBgColorForOperation(transaction.state) }
         }));
 
         grid_bank.add(rowsToAdd); // Добавить все записи за один раз
     }
     grid_bank.refresh()
-    console.timeEnd('setRowOperations')
+    console.timeEnd('setRowTransactions')
 }
 
 const setRowsMatching = (response) => {

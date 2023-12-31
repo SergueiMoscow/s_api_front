@@ -1,0 +1,33 @@
+<link rel="stylesheet" type="text/css" href="./css/operations.css">
+<script type="module" src="js/operations.js"></script>
+<div class="row mx-5">
+    <div class="feature col d-flex justify-content-center">
+        <div class="col-md-5">
+            <label for="operation-type" class="form-label">Тип операции</label>
+            <select class="form-select" id="operation-types" required="">
+                <option value="">Choose...</option>
+            </select>
+        </div>
+    </div>
+    <div class="feature col d-flex justify-content-center">
+        <div class="col-md-5">
+            <label for="account" class="form-label">Счёт</label>
+            <select class="form-select" id="accounts" required="">
+                <option value="">Choose...</option>
+            </select>
+        </div>
+    </div>
+    <div class="feature col d-flex justify-content-center">
+        <div class="col-md-5">
+            <label for="month" class="form-label">Месяц</label>
+            <input type="month" class="form-select" id="month" required="">
+            </select>
+        </div>
+    </div>
+</div>
+<div class="grid-cotainer">
+    <h1>Operations</h1>
+    <div class="row">
+        <div id="grid-operations" style="width: 100%; height: 400px;"></div>
+    </div>
+</div>

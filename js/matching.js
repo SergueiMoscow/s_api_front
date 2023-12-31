@@ -1,5 +1,6 @@
 import { w2field, w2grid, query } from '../w2ui/js/w2ui-2.0.es6.js'
 import { ajax, backend } from '../js/common.js'
+import { getCategoriesByType } from './budget_common.js';
 export let grid_bank;
 export let grid_match;
 
@@ -98,32 +99,6 @@ const setValues = (response) => {
     // debugger;
 }
 
-const saveCategoriesByType = (key, response) => {
-    localStorage.setItem(key, JSON.stringify(response.result))
-}
-
-const saveCategoriesExpense = (response) => {
-    saveCategoriesByType('ExpenseCategories', response)
-}
-
-const saveCategoriesIncome = (response) => {
-    saveCategoriesByType('IncomeCategories', response)
-}
-
-const getCategoriesByType = () => {
-    ajax({
-        method: 'GET',
-        url: 'budget/category?types=Income,Transfer',
-        success: saveCategoriesIncome
-    })
-    ajax({
-        method: 'GET',
-        url: 'budget/category?types=Expense,Transfer',
-        success: saveCategoriesExpense
-    })
-}
-
-
 const loadData = () => {
     ajax({
         method: 'GET',
@@ -137,11 +112,11 @@ const updateGridForMatched = (response) => {
     console.log(response)
     if (response.result) {
         response.result.forEach(el => {
-            const row_bank = grid_bank.get(el.operation_id)
+            const row_bank = grid_bank.get(el.transaction_id)
             row_bank.state='linked'
             row_bank.w2ui.style=getBgColorForOperation(row_bank.state)
-            grid_bank.refreshRow(el.operation_id)
-            requestMatching(el.operation_id)
+            grid_bank.refreshRow(el.transaction_id)
+            requestMatching(el.transaction_id)
         })
 
     }
@@ -160,8 +135,8 @@ const getDataForMatchRequest = () => {
     const bank_selected = grid_bank.getChanges()
     bank_selected.forEach(row => {
         category = category.length > row.category?.text?.length ? category : row.category.text
-        budget = budget.length > row.budget?.text?.length ? budget : row.budget?.text
-        notes = notes.length > row.notes?.text?.length ? notes : row.notes
+        budget = (budget.length > row.budget?.text?.length ? budget : row.budget?.text) || ''
+        notes = (notes.length > row.notes?.text?.length ? notes : row.notes) || ''
     })
     return {category: category, budget: budget, notes: notes, account: account}
 }
@@ -199,7 +174,7 @@ const sendMatchRequest = (bank_id, match_id) => {
         method: "POST",
         url: "bank/matching",
         headers: {"Content-Type": "application/json"},
-        body: {operation_ids: bank_id, cashflow_ids: cashFlowIds, ...dataForMatchRequest},
+        body: {transaction_ids: bank_id, cashflow_ids: cashFlowIds, ...dataForMatchRequest},
         credentials: "same-origin",
         success: updateGridForMatched
     })

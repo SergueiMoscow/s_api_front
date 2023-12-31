@@ -1,12 +1,11 @@
 import { w2field, w2grid, query } from '../w2ui/js/w2ui-2.0.es6.js'
 import { ajax, backend } from '../js/common.js'
-import { getCategoriesByType } from './budget_common.js';
+import { getCategoriesByType, findColumnIndex } from './budget_common.js';
 export let grid_bank;
 export let grid_match;
 
 const getTransactionsURL = 'bank/transactions'
-// TODO: Убрать коммент + 1 из getMonth. Это только для разработки!!!
-let month = (new Date()).getMonth() // + 1
+let month = (new Date()).getMonth()
 let year = (new Date()).getFullYear()
 
 
@@ -90,13 +89,12 @@ const setValues = (response) => {
             loadTransactions()
             console.log(event.target.value);
         });
-        // grid_bank.columns[6].editable.items = response.categories.map(category => category.name)
-        grid_bank.columns[7].editable.items = response.budgets.map(budget => budget.name)
+        categoryColumnIndex = findColumnIndex(grid_bank, 'category')
+        grid_bank.columns[categoryColumnIndex].editable.items = response.budgets.map(budget => budget.name)
 
     }
 
     setRowsTransactions(response.transactions)
-    // debugger;
 }
 
 const loadData = () => {

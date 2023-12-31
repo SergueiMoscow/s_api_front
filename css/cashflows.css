@@ -3,3 +3,8 @@
     padding-bottom: 10px;
     color: #999;
 }
+
+.max-10-em {
+    width: 10em;
+    flex-shrink: 0;
+}

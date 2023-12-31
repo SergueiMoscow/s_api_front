@@ -22,3 +22,9 @@ export const getCategoriesByType = () => {
         success: saveCategoriesExpense
     });
 };
+
+
+export const findColumnIndex = (grid, fieldName) => {
+    const index = grid.columns.findIndex(column => column.field === fieldName);
+    return index;
+}

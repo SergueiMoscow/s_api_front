@@ -1,4 +1,4 @@
-import { isLoggedIn, ajax, redirectTo, getToken, fillContent } from './common.js'
+import { isLoggedIn, ajax, redirectTo, updateMenuState, fillContent } from './common.js'
 window.fillContent = fillContent
 
 const logout = async () => {
@@ -32,7 +32,7 @@ const createMenu = async (response) => {
             } else {
                 a.href='#'
                 a.addEventListener('click', () => {
-                    fillContent(`${item.html}.html`);
+                    fillContent(`${item.html}.html`, item.html);
                 });
             }
             a.innerHTML = `${item.caption}`;
@@ -64,6 +64,12 @@ $( document ).ready(async () => {
     })
     viewHeaderComponents();
     getMenu();
+    const lastMenu = localStorage.getItem('lastMenu');
+    
+    if (lastMenu) {
+        updateMenuState(lastMenu); // Обновите состояние меню
+        fillContent(`${lastMenu}.html`, lastMenu); // Загрузите содержимое
+    }    
     console.log( "ready header" );
 });
 

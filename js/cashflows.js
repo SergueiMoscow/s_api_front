@@ -7,12 +7,57 @@ export let gridCashFlows;
 let budgets = []
 let categories = []
 
-const loadCashFlows = () => {
 
+const updateCashFlowGrid = (response) => {
+    console.log(response)
 }
 
-const setRowsCashflow = (cashflows) => {
+const loadCashFlows = () => {
+    const filter = {
+        date_begin: document.getElementById('date-begin').value,
+        date_end: document.getElementById('date-end').value,
+        category_ids: [],
+        operation_type: document.getElementById('operation-types').value,
+    }
+    let budget = document.getElementById('budgets').value
+    if (budget !== '') filter['budget'] = budget
+    let account = document.getElementById('accounts').value
+    if (account !== '') filter['account'] = account
+
+    
+    ajax({
+        method: 'GET',
+        url: 'budget/cashflow/',
+        queryParams: filter,
+        success: setRowsCashflow,
+    })
+}
+
+const saveColumnSize = (grid) => {
+    const sizes = {}
+    grid.columns.forEach(col => {
+        sizes[col.field] = col.size
+    })
+    localStorage.setItem(grid.name, JSON.stringify(sizes))
+    console.log('saveColumnSize')
+}
+
+const restoreColumnSize = (grid) => {
+    const sizesStr = localStorage.getItem(grid.name);
+    if (sizesStr) {
+        const sizes = JSON.parse(sizesStr);
+        grid.columns.forEach(col => {
+            if (sizes[col.field] != null) {  // Проверка наличия сохраненного размера для колонки
+                col.size = sizes[col.field];
+            }
+        });
+    }
+    console.log('restoreColumnSize');
+}
+
+const setRowsCashflow = (response) => {
     console.time('setRowCashflows')
+    const cashflows = response.cashflows
     gridCashFlows.records = []
 
     if (cashflows && cashflows.length > 0) {
@@ -53,7 +98,7 @@ const setValues = (response) => {
     if (inputDateBegin) {
         inputDateBegin.value = `${response.filter.date_begin}`
         inputDateBegin.addEventListener('change', (event) => {
-            loadTransactions()
+            loadCashFlows()
             console.log(`inputDateBegin ${event.target.value}`);
         });
     }
@@ -61,7 +106,7 @@ const setValues = (response) => {
     if (inputDateEnd) {
         inputDateEnd.value = `${response.filter.date_end}`
         inputDateEnd.addEventListener('change', (event) => {
-            loadTransactions()
+            loadCashFlows()
             console.log(`inputDateEnd ${event.target.value}`);
         });
     }
@@ -77,7 +122,7 @@ const setValues = (response) => {
             inputOperationType.value = "All"; // Установить All, если operation_type равен null.
         }
         inputOperationType.addEventListener('change', (event) => {
-            loadTransactions()
+            loadCashFlows()
             console.log(`inputOperationType ${event.target.value}`);
         });
     }
@@ -106,6 +151,10 @@ const setValues = (response) => {
         const budgetColumnIndex = findColumnIndex(gridCashFlows, 'budget')
         gridCashFlows.columns[budgetColumnIndex].editable.items = response.budgets.map(budget => budget.name)
 
+        gridCashFlows.onColumnResize = function(event) {
+            saveColumnSize(this)
+        }
+
     }
 
     if (inputBudget) {
@@ -127,7 +176,7 @@ const setValues = (response) => {
 
         });
     }
-    setRowsCashflow(response.cashflows)
+    setRowsCashflow(response)
 }
 
 const loadData = () => {
@@ -193,6 +242,6 @@ $(document).ready(async () => {
         });
     getCategoriesByType()
     loadData()
-
+    restoreColumnSize(gridCashFlows)
     console.log('DocumentReady')
 })

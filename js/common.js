@@ -165,6 +165,19 @@ export const redirectTo = (url) => {
 }
 
 
-export const fillContent = (html) => {
+export const fillContent = (html, link) => {
+    localStorage.setItem('lastMenu', link);
     $("#content").load(html)
 }
+
+export const updateMenuState = (activeLink) => {
+    document.querySelectorAll('#menu-ul a.nav-link').forEach(a => {
+        // Удаление активного класса со всех ссылок
+        a.classList.remove('active');
+        
+        // Добавление класса active к текущему выбранному пункту меню
+        if (a.getAttribute('href') === activeLink) {
+            a.classList.add('active');
+        }
+    });
+};

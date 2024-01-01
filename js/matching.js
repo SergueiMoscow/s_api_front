@@ -1,6 +1,6 @@
 import { w2field, w2grid, query } from '../w2ui/js/w2ui-2.0.es6.js'
-import { ajax, backend } from '../js/common.js'
-import { getCategoriesByType, findColumnIndex } from './budget_common.js';
+import { ajax } from '../js/common.js'
+import { getCategoriesByType, findColumnIndex, getBgColorForOperation } from './budget_common.js';
 export let grid_bank;
 export let grid_match;
 
@@ -48,7 +48,7 @@ const setValues = (response) => {
     }
 
     if (inputMonth) {
-        inputMonth.value = `${response.filter.year}-${response.filter.month}`
+        inputMonth.value = `${response.filter.year}-${String(response.filter.month).padStart(2, '0')}`
         inputMonth.addEventListener('change', (event) => {
             loadTransactions()
             console.log(`inputMonth ${event.target.value}`);
@@ -89,7 +89,7 @@ const setValues = (response) => {
             loadTransactions()
             console.log(event.target.value);
         });
-        categoryColumnIndex = findColumnIndex(grid_bank, 'category')
+        const categoryColumnIndex = findColumnIndex(grid_bank, 'category')
         grid_bank.columns[categoryColumnIndex].editable.items = response.budgets.map(budget => budget.name)
 
     }
@@ -331,14 +331,6 @@ $(document).ready(async () => {
 
     console.log('ready matching')
 })
-
-const getBgColorForOperation = (state) => {
-    if (state == 'none') return 'color: #333333'
-    if (state == 'potential') return 'color: #3333BB'
-    if (state == 'linked') return 'color: #33BB33'
-    return 'color: #FF3333'
-}
-
 
 const setRowsTransactions = (response) => {
     console.time('setRowTransactions')

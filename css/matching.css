@@ -27,3 +27,7 @@
 .grids .row:last-child {
     width: calc(40% - 1.5px);
 }
+
+#grid_grid-cashflows_searches {
+    display: none;
+}

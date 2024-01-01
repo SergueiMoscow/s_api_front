@@ -27,4 +27,10 @@ export const getCategoriesByType = () => {
 export const findColumnIndex = (grid, fieldName) => {
     const index = grid.columns.findIndex(column => column.field === fieldName);
     return index;
-}
+};
+export const getBgColorForOperation = (state) => {
+    if (state == 'none') return 'color: #333333';
+    if (state == 'potential') return 'color: #3333BB';
+    if (state == 'linked') return 'color: #33BB33';
+    return 'color: #FF3333';
+};

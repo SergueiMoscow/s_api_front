@@ -3,17 +3,25 @@
 <div class="row mx-5">
     <div class="feature col d-flex justify-content-center">
         <div class="col-md-5">
-            <label for="operation-type" class="form-label">Тип операции</label>
-            <select class="form-select" id="operation-types" required="">
-                <option value="">Choose...</option>
+            <label for="budgets" class="form-label">Бюджет</label>
+            <select class="form-select" id="budgets" required="">
+                <option value="">All</option>
             </select>
         </div>
     </div>
     <div class="feature col d-flex justify-content-center">
         <div class="col-md-5">
-            <label for="account" class="form-label">Счёт</label>
+            <label for="operation-type" class="form-label">Тип операции</label>
+            <select class="form-select" id="operation-types" required="">
+                <option value="All">All</option>
+            </select>
+        </div>
+    </div>
+    <div class="feature col d-flex justify-content-center">
+        <div class="col-md-5">
+            <label for="accounts" class="form-label">Счёт</label>
             <select class="form-select" id="accounts" required="">
-                <option value="">Choose...</option>
+                <option value="">All</option>
             </select>
         </div>
     </div>
@@ -27,8 +35,7 @@
         </div>
     </div>
 </div>
-<div class="grid-cotainer">
-    <h1>Operations</h1>
+<div class="grid-container">
     <div class="row">
         <div id="grid-cashflows" style="width: 100%; height: 400px;"></div>
     </div>

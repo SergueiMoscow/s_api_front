@@ -243,27 +243,16 @@ const setSelectedValue = (selectElement, valueToSelect) => {
     }
 }
 
-
-const setSelectedCategory = (fullCategoryName) => {
-    const categoriesStr = localStorage.getItem('categories');
-    const categories = JSON.parse(categoriesStr);
-    const editCategory1 = document.getElementById('edit-category1');
+const setCategory2Options = (categories, parentId, childName = null) => {
+    // Принимаем весь список категорий из localStorage и Parent
+    // Заполняем options в category2 SELECT.
+    if (categories == null) {
+        const categoriesStr = localStorage.getItem('categories');
+        categories = JSON.parse(categoriesStr);
+    }
     const editCategory2 = document.getElementById('edit-category2');
     
     editCategory2.innerHTML = '';
-
-    // 1. Разделяем полное название категории на parent и child.
-    const [parentName, childName] = fullCategoryName.split(' / ');
-
-    // 2. Находим parent category.
-    let parentId = null;
-    for (let id in categories) {
-        if (categories[id].name === parentName) {
-            parentId = id;
-            editCategory1.value = parentId; // Предполагаем, что значения соответствуют id категорий.
-            break;
-        }
-    }
 
     // 3. Если есть дочерние категории, добавляем их в editCategory2.
     if (parentId && categories[parentId].children) {
@@ -279,17 +268,42 @@ const setSelectedCategory = (fullCategoryName) => {
             }
         });
 
-        if (childName) {
-            editCategory2.style.display = 'block'; // Показываем editCategory2, если есть дочерняя категория
-        } else {
-            editCategory2.style.display = 'none'; // Скрываем, если дочерней нет.
-        }
+        editCategory2.style.display = 'block'; // Показываем editCategory2, если есть дочерняя категория
     } else {
         // Скрываем editCategory2, если у parent нет дочерних категорий
         editCategory2.style.display = 'none';
     }
+}
+
+const setSelectedCategory = (fullCategoryName) => {
+    const categoriesStr = localStorage.getItem('categories');
+    const categories = JSON.parse(categoriesStr);
+    const editCategory1 = document.getElementById('edit-category1');
+
+    // 1. Разделяем полное название категории на parent и child.
+    const [parentName, childName] = fullCategoryName.split(' / ');
+
+    // 2. Находим parent category.
+    let parentId = null;
+    for (let id in categories) {
+        if (categories[id].name === parentName) {
+            parentId = id;
+            editCategory1.value = parentId; // Предполагаем, что значения соответствуют id категорий.
+            break;
+        }
+    }
+    setCategory2Options(categories, parentId, childName)
 };
 
+const disableMultiEdit = () => {
+    // Инициализируем div с checkbox для возможности мультиEdit
+    const editCashflowForm = document.querySelector('form#editCashflow');
+    const col1Divs = editCashflowForm.querySelectorAll('div.col-1');
+    col1Divs.forEach(div => {
+        div.style.display = 'none';
+    });        
+
+}
 
 const loadSelectedToForm = (recid) => {
     const title = document.getElementById('edit-title')
@@ -303,7 +317,6 @@ const loadSelectedToForm = (recid) => {
     const editAccount = document.getElementById('edit-account')
     const editCategory = document.getElementById('edit-category')
     const editNotes = document.getElementById('edit-notes')
-    // Инициализируем div с checkbox для возможности мультиEdit
     const editCashflowForm = document.querySelector('form#editCashflow');
     const col1Divs = editCashflowForm.querySelectorAll('div.col-1');
 
@@ -358,6 +371,22 @@ const columnsCashflow = [
     { field: 'state', text: 'State', size: '5px', hidden: true },
 
 ]
+
+const showOrHideForm = (action) => {
+    const listCashflowDiv = document.getElementById('list-cashflow');
+    const editCashflowDiv = document.getElementById('edit-cashflow');
+if (action == 'show') {
+        listCashflowDiv.className = "col-8";
+        editCashflowDiv.style.display = "block";
+        editCashflowDiv.className = "col-md-4 col-lg-4 order-md-last";
+    } else {
+        listCashflowDiv.className = "col-12";
+        editCashflowDiv.style.display = "none";
+        editCashflowDiv.className = "";
+
+    }
+}
+
 const toolbarCashflow = {
     items: [
         { id: 'editDiv', type: 'check', text: 'Edit'},
@@ -366,22 +395,86 @@ const toolbarCashflow = {
     ],
     onClick(event) {
         if (event.target == 'editDiv') {
-            const listCashflowDiv = document.getElementById('list-cashflow');
-            const editCashflowDiv = document.getElementById('edit-cashflow');
-
             if (event.object.checked) {
-                listCashflowDiv.className = "col-12";
-                editCashflowDiv.style.display = "none";
-                editCashflowDiv.className = "";
+                showOrHideForm('hide')
             } else {
-                listCashflowDiv.className = "col-8";
-                editCashflowDiv.style.display = "block";
-                editCashflowDiv.className = "col-md-4 col-lg-4 order-md-last";
+                showOrHideForm('show')
             }
             console.log('EditDiv')
             console.log(event)
         }
     }
+}
+
+const getFormValues = () => {
+    const id = document.getElementById('edit-id').value
+    const time = document.getElementById('edit-time').value
+    const amount = document.getElementById('edit-amount').value
+    const budget = document.getElementById('edit-budget').value
+    const operationType = document.getElementById('edit-type').value
+    const account = document.getElementById('edit-account').value
+    const category1 = document.getElementById('edit-category1').value
+    const category2 = document.getElementById('edit-category2').value
+    const notes = document.getElementById('edit-notes').value
+    // если есть child, то id в нём, иначе в первом
+    const category = (category2 ? category2 : category1)
+    return {
+        id: id,
+        time: time,
+        amount: amount,
+        budget: budget,
+        account: account,
+        operation_type: operationType,
+        category,
+        notes: notes,
+    }
+}
+
+const successCreateOrUpdate = () => {
+    loadCashFlows()
+}
+
+const setBtnSaveHandler = () => {
+    const btnSave = document.getElementById('btn-save')
+    btnSave.addEventListener('click', (event) => {
+        event.preventDefault()
+        const formValues = getFormValues()
+        if (formValues.id == 0) {  // new record
+            return ajax({
+                method: 'POST',
+                url: 'budget/cashflow/',
+                body: formValues,
+                success: successCreateOrUpdate,
+            })
+        }
+        if (gridCashFlows.getSelection().length == 1) {
+            return ajax({
+                method: 'PATCH',
+                url: `budget/cashflow/${formValues.id}/`,
+                body: formValues,
+                success: successCreateOrUpdate,
+            })
+        }
+        console.log('save info')
+    })
+}
+
+const btnAddHandler = (event) => {
+    document.getElementById('edit-id').value=0
+    document.getElementById('edit-title').innerHTML = 'New record'
+    showOrHideForm('show')
+
+    console.log('add')
+    console.log(event)
+}
+
+const setCategory1ChangeHandler = (event) => {
+    const category1 = document.getElementById('edit-category1')
+    category1.addEventListener('change', (event) => {
+        setCategory2Options(null, event.target.value)
+        console.log('change category1 event')
+        console.log(event)
+    })
 }
 
 $(document).ready(async () => {
@@ -396,6 +489,7 @@ $(document).ready(async () => {
                 'toolbar': true,
                 'footer': true,
                 'toolbarSave': true,
+                toolbarAdd: true,
                 selectColumn: true
             },
             columns: columnsCashflow,
@@ -403,6 +497,7 @@ $(document).ready(async () => {
             records: [],
             advanceOnEdit: false,
             onReload: loadCashFlows,
+            onAdd: btnAddHandler,
         });
     gridCashFlows.on('select', (event) => {
         setTimeout(() => {
@@ -410,24 +505,13 @@ $(document).ready(async () => {
             console.log('Selected records after onSelect:', selectedRecords);
             loadSelectedToForm()
           }, 0);
-          
-        // let recid = event.detail.recid ?? event.detail.clicked?.recid
-        // if (event.type == 'click') {
-        //     const txt = 'rec: ' + recid
-        //     console.log(txt)
-        //     loadSelectedToForm(recid)
-        // }
     })
-    // gridCashFlows.onSelect = (event) => {
-    //     console.log(`OnSelect`)
-    //     console.log(event.execute)
-    //     console.log(event.owner.getSelection())
-    //     // loadSelectedToForm
-    // }
-
-
+    showOrHideForm('hide')
     getCategoriesByType()
     loadData()
     restoreColumnSize(gridCashFlows)
+    setBtnSaveHandler()
+    setCategory1ChangeHandler()
+    disableMultiEdit()
     console.log('DocumentReady')
 })

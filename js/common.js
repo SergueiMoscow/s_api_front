@@ -56,7 +56,9 @@ export const ajax = async ({
                     throw new Error(data.error);
                   });
             }
-            return response.json();
+            if (response.status == 200) {
+                return response.json();
+            }
         })
         .then(data => success(data))
         .catch(e => {

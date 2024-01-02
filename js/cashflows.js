@@ -247,11 +247,9 @@ const setSelectedValue = (selectElement, valueToSelect) => {
 const setSelectedCategory = (fullCategoryName) => {
     const categoriesStr = localStorage.getItem('categories');
     const categories = JSON.parse(categoriesStr);
-    // Инициализация select элементов
     const editCategory1 = document.getElementById('edit-category1');
     const editCategory2 = document.getElementById('edit-category2');
     
-    // Очистка опций для editCategory2
     editCategory2.innerHTML = '';
 
     // 1. Разделяем полное название категории на parent и child.
@@ -305,6 +303,10 @@ const loadSelectedToForm = (recid) => {
     const editAccount = document.getElementById('edit-account')
     const editCategory = document.getElementById('edit-category')
     const editNotes = document.getElementById('edit-notes')
+    // Инициализируем div с checkbox для возможности мультиEdit
+    const editCashflowForm = document.querySelector('form#editCashflow');
+    const col1Divs = editCashflowForm.querySelectorAll('div.col-1');
+
     if (record_ids.length === 1) {
         const record = gridCashFlows.get(record_ids[0])
         editId.value = record.recid
@@ -316,7 +318,15 @@ const loadSelectedToForm = (recid) => {
         // setSelectedValue(editCategory, record.category)
         setSelectedCategory(record.category)
         editNotes.value = record.notes
-        
+
+        col1Divs.forEach(div => {
+            div.style.display = 'none';
+        });        
+    }
+    if (record_ids.length > 1) {
+        col1Divs.forEach(div => {
+            div.style.display = 'block';
+        });        
     }
 }
 

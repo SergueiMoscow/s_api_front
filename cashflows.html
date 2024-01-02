@@ -41,15 +41,18 @@
     </div>
     <div id="edit-cashflow" class="col-md-4 col-lg-4 order-md-last">
         <h4 id="edit-title"></h4>
-        <form class="needs-validation" novalidate="">
+        <form id="editCashflow">
             <input type="hidden" id="edit-id">
             <div class="row g-3">
-                <div class="col-12">
+                <div class="col-11">
                     <label for="edit-time" class="form-label">Date</label>
                     <input type="datetime-local" class="form-control" id="edit-time" required="">
                 </div>
-
-                <div class="col-sm-6">
+                <div class="col-1">
+                    <label for="save-time" class="form-label">Save</label>
+                    <input type="checkbox" class="form-check-input" id="save-time">
+                </div>
+                <div class="col-6">
                     <label for="edit-type" class="form-label">Type</label>
                     <select class="form-select" id="edit-type" required="">
                         <option>Income</option>
@@ -57,9 +60,13 @@
                         <option>Transfer</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-5">
                     <label for="edit-amount" class="form-label">Amount</label>
                     <input type="text" class="form-control" id="edit-amount" placeholder="" required="">
+                </div>
+                <div class="col-1">
+                    <label for="save-amount" class="form-label">Save</label>
+                    <input type="checkbox" class="form-check-input" id="save-amount">
                 </div>
 
                 <div class="col-6">
@@ -68,10 +75,14 @@
                     </select>
                 </div>
 
-                <div class="col-6">
+                <div class="col-5">
                     <label for="edit-account" class="form-label">Account</label>
                     <select class="form-select" id="edit-account" required="">
                     </select>
+                </div>
+                <div class="col-1">
+                    <label for="save-account" class="form-label">Save</label>
+                    <input type="checkbox" class="form-check-input" id="save-account">
                 </div>
 
                 <div class="col-6">
@@ -79,15 +90,23 @@
                     <select class="form-select" id="edit-category1" required="">
                     </select>
                 </div>
-                <div class="col-6">
+                <div class="col-5">
                     <label for="edit-category2" class="form-label">Subcategory</label>
                     <select class="form-select" id="edit-category2" required="">
                     </select>
                 </div>
+                <div class="col-1">
+                    <label for="save-category" class="form-label">Save</label>
+                    <input type="checkbox" class="form-check-input" id="save-category">
+                </div>
 
-                <div class="col-12">
+                <div class="col-11">
                     <label for="edit-notes" class="form-label">Notes</label>
                     <input type="text" class="form-control" id="edit-notes" placeholder="Notes">
+                </div>
+                <div class="col-1">
+                    <label for="save-notes" class="form-label">Save</label>
+                    <input type="checkbox" class="form-check-input" id="save-notes">
                 </div>
             </div>
 

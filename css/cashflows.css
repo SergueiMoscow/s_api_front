@@ -9,6 +9,7 @@
     flex-shrink: 0;
 }
 
-.grid-container {
-    margin: 0 2em;
+.grids {
+    margin: 1em;
 }
+

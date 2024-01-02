@@ -1,6 +1,6 @@
 import { w2ui, w2grid } from '../w2ui/js/w2ui-2.0.es6.js'
 import { ajax } from './common.js'
-import { getCategoriesByType, findColumnIndex, getBgColorForOperation } from './budget_common.js';
+import { getCategoriesByType, findColumnIndex, getBgColorForOperation, formatISOToDateTimeLocal } from './budget_common.js';
 
 export let gridCashFlows;
 
@@ -24,7 +24,7 @@ const loadCashFlows = () => {
     let account = document.getElementById('accounts').value
     if (account !== '') filter['account'] = account
 
-    
+
     ajax({
         method: 'GET',
         url: 'budget/cashflow/',
@@ -60,6 +60,14 @@ const setRowsCashflow = (response) => {
     const cashflows = response.cashflows
     gridCashFlows.records = []
 
+    const getFullCategoryName = (category) => {
+        if (!category || !category.parent) {
+            return category ? category.name : '';
+        }
+        const parentCategory = JSON.parse(localStorage.getItem('categories'))[category.parent];
+        return parentCategory ? `${parentCategory.name} / ${category.name}` : category.name;
+    }
+
     if (cashflows && cashflows.length > 0) {
         const rowsToAdd = cashflows.map(el => ({
             recid: el.id,
@@ -70,7 +78,7 @@ const setRowsCashflow = (response) => {
             budget: el.budget.name,
             notes: el.notes,
             time: el.time,
-            category: el.category.name,
+            category: getFullCategoryName(el.category),
             state: el.linked ? 'linked' : 'none',
             w2ui: { style: getBgColorForOperation(el.linked ? 'linked' : 'none') }
         }));
@@ -81,12 +89,48 @@ const setRowsCashflow = (response) => {
     console.timeEnd('setRowCashflows')
 }
 
+
+const saveCategoriesToLocalStorage = (response) => {
+    const categories = response.categories;
+    const categoriesObject = {};
+    categories.forEach(category => {
+        categoriesObject[category.id] = {
+            name: category.name,
+            is_income: category.is_income,
+            is_expense: category.is_expense,
+            is_transfer: category.is_transfer,
+            children: category.children,
+        };
+    });
+    localStorage.setItem('categories', JSON.stringify(categoriesObject));
+}
+
+const fillCategory1Select = () => {
+    const category1Select = document.getElementById('edit-category1');
+    const categoriesObject = JSON.parse(localStorage.getItem('categories'));
+    
+    // Очищаем предыдущие options, если они были
+    category1Select.innerHTML = '';
+
+    // Теперь нам нужно использовать Object.entries для перебора
+    for (const [id, categoryDetails] of Object.entries(categoriesObject)) {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = categoryDetails.name;
+        category1Select.appendChild(option);
+    }
+}
+
 const setValues = (response) => {
     const inputDateBegin = document.getElementById("date-begin")
     const inputDateEnd = document.getElementById("date-end")
     const inputOperationType = document.getElementById("operation-types")
     const inputAccount = document.getElementById("accounts")
     const inputBudget = document.getElementById("budgets")
+
+    const editBudget = document.getElementById('edit-budget')
+    const editAccount = document.getElementById('edit-account')
+    const editCategory = document.getElementById('edit-category')
 
     const addOptionIfNotExist = (select, value, text) => {
         if (!Array.from(select.options).some(option => option.textContent === text)) {
@@ -126,7 +170,7 @@ const setValues = (response) => {
             console.log(`inputOperationType ${event.target.value}`);
         });
     }
-    if (inputAccount) {
+    if (inputAccount && editAccount) {
         response.accounts.forEach(account => {
             const option = document.createElement("option");
             option.value = account.id;
@@ -137,12 +181,12 @@ const setValues = (response) => {
                 option.selected = true;
             }
             inputAccount.appendChild(option);
-            // добавить обработчик события на изменение выбранного элемента в select
-            inputAccount.addEventListener('change', (event) => {
-                loadCashFlows()
-                console.log(event.target.value);
-            });
-
+            editAccount.appendChild(option)
+        });
+        // добавить обработчик события на изменение выбранного элемента в select
+        inputAccount.addEventListener('change', (event) => {
+            loadCashFlows()
+            console.log(event.target.value);
         });
 
         const categoryColumnIndex = findColumnIndex(gridCashFlows, 'category')
@@ -151,13 +195,12 @@ const setValues = (response) => {
         const budgetColumnIndex = findColumnIndex(gridCashFlows, 'budget')
         gridCashFlows.columns[budgetColumnIndex].editable.items = response.budgets.map(budget => budget.name)
 
-        gridCashFlows.onColumnResize = function(event) {
+        gridCashFlows.onColumnResize = function (event) {
             saveColumnSize(this)
         }
-
     }
 
-    if (inputBudget) {
+    if (inputBudget && editBudget) {
         response.budgets.forEach(budget => {
             const option = document.createElement("option");
             option.value = budget.id;
@@ -168,14 +211,18 @@ const setValues = (response) => {
                 option.selected = true;
             }
             inputBudget.appendChild(option);
-            // добавить обработчик события на изменение выбранного элемента в select
-            inputBudget.addEventListener('change', (event) => {
-                loadCashFlows()
-                console.log(event.target.value);
-            });
+            editBudget.appendChild(option);
 
         });
+        // добавить обработчик события на изменение выбранного элемента в select
+        inputBudget.addEventListener('change', (event) => {
+            loadCashFlows()
+            console.log(event.target.value);
+        });
+
     }
+    saveCategoriesToLocalStorage(response)
+    fillCategory1Select()
     setRowsCashflow(response)
 }
 
@@ -185,6 +232,92 @@ const loadData = () => {
         url: 'budget/initialize',
         success: setValues,
     })
+}
+
+const setSelectedValue = (selectElement, valueToSelect) => {
+    for (const option of selectElement.options) {
+        if (option.text === valueToSelect) {
+            selectElement.value = option.value;
+            break;
+        }
+    }
+}
+
+
+const setSelectedCategory = (fullCategoryName) => {
+    const categoriesStr = localStorage.getItem('categories');
+    const categories = JSON.parse(categoriesStr);
+    // Инициализация select элементов
+    const editCategory1 = document.getElementById('edit-category1');
+    const editCategory2 = document.getElementById('edit-category2');
+    
+    // Очистка опций для editCategory2
+    editCategory2.innerHTML = '';
+
+    // 1. Разделяем полное название категории на parent и child.
+    const [parentName, childName] = fullCategoryName.split(' / ');
+
+    // 2. Находим parent category.
+    let parentId = null;
+    for (let id in categories) {
+        if (categories[id].name === parentName) {
+            parentId = id;
+            editCategory1.value = parentId; // Предполагаем, что значения соответствуют id категорий.
+            break;
+        }
+    }
+
+    // 3. Если есть дочерние категории, добавляем их в editCategory2.
+    if (parentId && categories[parentId].children) {
+        categories[parentId].children.forEach(child => {
+            let option = document.createElement('option');
+            option.value = child.id;
+            option.textContent = child.name;
+            editCategory2.appendChild(option);
+
+            // Добавляем дочерний элемент, если он совпал с указанным в fullCategoryName
+            if (childName && child.name === childName) {
+                editCategory2.value = child.id; // Присваиваем id, который уже является значением в option.
+            }
+        });
+
+        if (childName) {
+            editCategory2.style.display = 'block'; // Показываем editCategory2, если есть дочерняя категория
+        } else {
+            editCategory2.style.display = 'none'; // Скрываем, если дочерней нет.
+        }
+    } else {
+        // Скрываем editCategory2, если у parent нет дочерних категорий
+        editCategory2.style.display = 'none';
+    }
+};
+
+
+const loadSelectedToForm = (recid) => {
+    const title = document.getElementById('edit-title')
+    const record_ids = gridCashFlows.getSelection()
+    title.innerHTML = `${record_ids.length} selected`
+    const editId = document.getElementById('edit-id')
+    const editTime = document.getElementById('edit-time')
+    const editType = document.getElementById('edit-type')
+    const editAmount = document.getElementById('edit-amount')
+    const editBudget = document.getElementById('edit-budget')
+    const editAccount = document.getElementById('edit-account')
+    const editCategory = document.getElementById('edit-category')
+    const editNotes = document.getElementById('edit-notes')
+    if (record_ids.length === 1) {
+        const record = gridCashFlows.get(record_ids[0])
+        editId.value = record.recid
+        editTime.value = formatISOToDateTimeLocal(record.time)
+        editType.value = record.operation_type
+        editAmount.value = record.amount
+        setSelectedValue(editBudget, record.budget)
+        setSelectedValue(editAccount, record.account)
+        // setSelectedValue(editCategory, record.category)
+        setSelectedCategory(record.category)
+        editNotes.value = record.notes
+        
+    }
 }
 
 const columnsCashflow = [
@@ -215,9 +348,32 @@ const columnsCashflow = [
     { field: 'state', text: 'State', size: '5px', hidden: true },
 
 ]
-const toolbarCashflow = [
+const toolbarCashflow = {
+    items: [
+        { id: 'editDiv', type: 'check', text: 'Edit'},
+        { type: 'break' },
+        { type: 'button', id: 'showChanges', text: 'Show Changes' }
+    ],
+    onClick(event) {
+        if (event.target == 'editDiv') {
+            const listCashflowDiv = document.getElementById('list-cashflow');
+            const editCashflowDiv = document.getElementById('edit-cashflow');
 
-]
+            if (event.object.checked) {
+                listCashflowDiv.className = "col-12";
+                editCashflowDiv.style.display = "none";
+                editCashflowDiv.className = "";
+            } else {
+                listCashflowDiv.className = "col-8";
+                editCashflowDiv.style.display = "block";
+                editCashflowDiv.className = "col-md-4 col-lg-4 order-md-last";
+            }
+            console.log('EditDiv')
+            console.log(event)
+        }
+    }
+}
+
 $(document).ready(async () => {
     if (w2ui['grid-cashflows']) {
         w2ui['grid-cashflows'].destroy();
@@ -229,17 +385,37 @@ $(document).ready(async () => {
             show: {
                 'toolbar': true,
                 'footer': true,
-                'toolbarSave': false,
-                'toolbarAdd': false,
-                'toolbarEdit': false,
+                'toolbarSave': true,
+                selectColumn: true
             },
             columns: columnsCashflow,
             toolbar: toolbarCashflow,
             records: [],
             advanceOnEdit: false,
             onReload: loadCashFlows,
-
         });
+    gridCashFlows.on('select', (event) => {
+        setTimeout(() => {
+            const selectedRecords = event.owner.getSelection();
+            console.log('Selected records after onSelect:', selectedRecords);
+            loadSelectedToForm()
+          }, 0);
+          
+        // let recid = event.detail.recid ?? event.detail.clicked?.recid
+        // if (event.type == 'click') {
+        //     const txt = 'rec: ' + recid
+        //     console.log(txt)
+        //     loadSelectedToForm(recid)
+        // }
+    })
+    // gridCashFlows.onSelect = (event) => {
+    //     console.log(`OnSelect`)
+    //     console.log(event.execute)
+    //     console.log(event.owner.getSelection())
+    //     // loadSelectedToForm
+    // }
+
+
     getCategoriesByType()
     loadData()
     restoreColumnSize(gridCashFlows)

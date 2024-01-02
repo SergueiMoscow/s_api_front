@@ -15,7 +15,10 @@ const viewHeaderComponents = async () => {
     const userIsLoggedIn = await isLoggedIn()
     login.style.display=(userIsLoggedIn ? 'none' : 'block')
     logout.style.display=(userIsLoggedIn ? 'block' : 'none')
-    search.style.display=(userIsLoggedIn ? 'block' : 'none')
+    if (search)
+    {
+        search.style.display=(userIsLoggedIn ? 'block' : 'none')
+    }
 }
 
 const createMenu = async (response) => {

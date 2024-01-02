@@ -34,3 +34,10 @@ export const getBgColorForOperation = (state) => {
     if (state == 'linked') return 'color: #33BB33';
     return 'color: #FF3333';
 };
+
+export const formatISOToDateTimeLocal = (isoString) => {
+    const date = new Date(isoString);
+    const offset = date.getTimezoneOffset() * 60000; // Смещение в миллисекундах
+    const localISOTime = (new Date(date.getTime() - offset)).toISOString().slice(0, -8); // Уберём секунды и миллисекунды
+    return localISOTime;
+  }

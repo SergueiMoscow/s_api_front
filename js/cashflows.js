@@ -422,10 +422,10 @@ const getFormValues = () => {
         id: id,
         time: time,
         amount: amount,
-        budget: budget,
-        account: account,
+        budget_id: budget,
+        money_storage_id: account,
         operation_type: operationType,
-        category,
+        category_id: category,
         notes: notes,
     }
 }

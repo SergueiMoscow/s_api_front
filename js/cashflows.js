@@ -417,7 +417,7 @@ const getFormValues = () => {
     const category2 = document.getElementById('edit-category2').value
     const notes = document.getElementById('edit-notes').value
     // если есть child, то id в нём, иначе в первом
-    const category = (category2 ? category2 : category1)
+    const category = category2 || category1;
     return {
         id: id,
         time: time,
@@ -432,6 +432,30 @@ const getFormValues = () => {
 
 const successCreateOrUpdate = () => {
     loadCashFlows()
+}
+
+const updateFormValuesForMultipleUpdate = (formValues) => {
+    const result = {}
+    if (document.getElementById('save-time').checked) {
+        result['time'] = formValues.time
+    }
+    if (document.getElementById('save-amount').checked) {
+        result['amount'] = formValues.amount
+    }
+    if (document.getElementById('save-account').checked) {
+        result['money_storage_id'] = formValues.money_storage_id
+    }
+    if (document.getElementById('save-budget').checked) {
+        result['budget_id'] = formValues.budget_id
+    }
+    if (document.getElementById('save-category').checked) {
+        result['category_id'] = formValues.category_id
+    }
+    if (document.getElementById('save-notes').checked) {
+        result['notes'] = formValues.notes
+    }
+    result['ids'] = gridCashFlows.getSelection()
+    return result
 }
 
 const setBtnSaveHandler = () => {
@@ -452,6 +476,15 @@ const setBtnSaveHandler = () => {
                 method: 'PATCH',
                 url: `budget/cashflow/${formValues.id}/`,
                 body: formValues,
+                success: successCreateOrUpdate,
+            })
+        }
+        if (gridCashFlows.getSelection().length > 1) {
+            const body = updateFormValuesForMultipleUpdate(formValues)
+            return ajax({
+                method: 'PATCH',
+                url: `budget/cashflow/bulk_update/`,
+                body: body,
                 success: successCreateOrUpdate,
             })
         }

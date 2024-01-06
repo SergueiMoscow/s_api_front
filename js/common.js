@@ -1,4 +1,4 @@
-export const backend = 'http://127.0.0.1:8000'
+import { backend } from './backend.js'
 
 const getTokenFromSession = () => {
     return sessionStorage.getItem('access');

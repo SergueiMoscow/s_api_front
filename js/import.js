@@ -27,7 +27,12 @@ const onBtnSendClick = () => {
 
     formData.append('file', fileControl.files[0]);
     formData.append('destination', destinationControl[destinationControl.selectedIndex].text);
-    formData.append('account', accountsControl[accountsControl.selectedIndex].text);
+    if (accountsControl.selectedIndex >= 0) {
+        formData.append('account', accountsControl[accountsControl.selectedIndex].text);
+    } else {
+        formData.append('account', '');
+    }
+    
     ajax({
         method: 'POST',
         url: 'budget/upload/',

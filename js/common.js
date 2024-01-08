@@ -36,7 +36,7 @@ const showError = (message) => {
             method,
             headers,
             credentials: "same-origin",
-            body: body instanceof FormData ? body : JSON.stringify(body)
+            body: body
         };
 
         const serializeQueryParams = params => {

@@ -1,5 +1,5 @@
 import { w2field, w2grid, query } from '../w2ui/js/w2ui-2.0.es6.js'
-import { ajax } from '../js/common.js'
+import { ajax, addOptionIfNotExist } from '../js/common.js'
 import { getCategoriesByType, findColumnIndex, getBgColorForOperation } from './budget_common.js';
 export let grid_bank;
 export let grid_match;
@@ -39,13 +39,6 @@ const setValues = (response) => {
     const inputMonth = document.getElementById("month")
     const inputOperationType = document.getElementById("operation-types")
     const inputAccount = document.getElementById("accounts")
-
-    const addOptionIfNotExist = (select, value, text) => {
-        if (!Array.from(select.options).some(option => option.textContent === text)) {
-            const option = new Option(text, value);
-            select.add(option);
-        }
-    }
 
     if (inputMonth) {
         inputMonth.value = `${response.filter.year}-${String(response.filter.month).padStart(2, '0')}`

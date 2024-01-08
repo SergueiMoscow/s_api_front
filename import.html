@@ -1,0 +1,31 @@
+<script type="module" src="js/import.js"></script>
+<div class="row mx-5">
+    <div class="col-6">
+        <label for="type" class="form-label">Назначение</label>
+        <select class="form-select" id="destination" required="">
+            <option value="">Операции</option>
+            <option>Выписка из банка</option>
+        </select>
+    </div>
+    <div class="col-6">
+        <label for="type" class="form-label">Счёт</label>
+        <select class="form-select" id="accounts" required="">
+        </select>
+    </div>
+    <div class="col-3"></div>
+
+    <div class="col-6">
+        <div class="mb-3">
+            <label for="formFile" class="form-label">Выберите файл</label>
+            <input class="form-control" type="file" id="formFile">
+        </div>
+    </div>
+    <div class="col-3"></div>
+    <div class="col-8"></div>
+    <div class="col-2">
+        <div class="mb-3">
+            <button class="btn btn-primary" type="button" id="send">Отправить</button>
+        </div>
+    </div>
+    <div class="col-2"></div>
+</div>

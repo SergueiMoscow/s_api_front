@@ -8,64 +8,71 @@ const showError = (message) => {
     console.log(message)
 }
 
-export const ajax = async ({
-    method,
-    url,
-    headers = {},
-    body,
-    success,
-    queryParams = {},
-    error = console.error,
-    handleError = (message) => alert(message),
-} = {}) => {
-    headers["Content-Type"] = "application/json";
-    const token = await getToken();
-
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const options = {
+    export const ajax = async ({
         method,
-        headers,
-        credentials: "same-origin",
-        body: body ? JSON.stringify(body) : undefined
-    };
-
-    const serializeQueryParams = params => {
-        return Object.keys(params)
-            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-            .join('&');
-    };
-
-    let fullUrl = `${backend}/${url}`;
-    const queryStr = serializeQueryParams(queryParams);
-
-    // GET-запрос не должен содержать тело
-    if (method.toUpperCase() === 'GET') {
-        delete options.body;
-        if (queryStr) {
-            fullUrl += `?${queryStr}`;
+        url,
+        headers = {},
+        body,
+        success,
+        queryParams = {},
+        error = console.error,
+        handleError = (message) => alert(message),
+    } = {}) => {
+        if (body instanceof FormData) {
+            delete headers["Content-Type"];
+        } else {
+            if (!('Content-Type' in headers)) {
+                headers["Content-Type"] = "application/json";
+            }
+            body = JSON.stringify(body);
         }
-    }
+        const token = await getToken();
 
-    const response = fetch(`${fullUrl}`, options)
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => {
-                    throw new Error(data.error);
-                  });
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const options = {
+            method,
+            headers,
+            credentials: "same-origin",
+            body: body instanceof FormData ? body : JSON.stringify(body)
+        };
+
+        const serializeQueryParams = params => {
+            return Object.keys(params)
+                .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+                .join('&');
+        };
+
+        let fullUrl = `${backend}/${url}`;
+        const queryStr = serializeQueryParams(queryParams);
+
+        // GET-запрос не должен содержать тело
+        if (method.toUpperCase() === 'GET') {
+            delete options.body;
+            if (queryStr) {
+                fullUrl += `?${queryStr}`;
             }
-            if (response.status == 200) {
-                return response.json();
-            }
-        })
-        .then(data => success(data))
-        .catch(e => {
-            console.error('Error: ', e)
-            alert(e.message)
-        });
-};
+        }
+
+        const response = fetch(`${fullUrl}`, options)
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error);
+                    });
+                }
+                if (response.status == 200) {
+                    return response.json();
+                }
+            })
+            .then(data => success(data))
+            .catch(e => {
+                console.error('Error: ', e)
+                alert(e.message)
+            });
+    };
 
 
 const base64UrlDecode = (str) => {
@@ -183,3 +190,10 @@ export const updateMenuState = (activeLink) => {
         }
     });
 };
+
+export const addOptionIfNotExist = (select, value, text) => {
+    if (!Array.from(select.options).some(option => option.textContent === text)) {
+        const option = new Option(text, value);
+        select.add(option);
+    }
+}

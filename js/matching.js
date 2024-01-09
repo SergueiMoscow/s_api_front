@@ -255,20 +255,40 @@ const toolbar_match = {
     }
 }
 
+const getCurrentDate = (currentValue) => {
+    const [year, month] = currentValue.split('-').map(Number);
+    const currentDate = new Date(year, month - 1)
+    return currentDate
+}
+
+const getValueForFromDateForMonthControl = (currentDate) => {
+    const newYear = currentDate.getFullYear();
+    const newMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+    return `${newYear}-${newMonth}`;
+}
+
 const setBtnPreviousNextMonthHandler = () => {
     const previousMonthButton = document.getElementById('previousMonth')
     const nextMonthButton = document.getElementById('nextMonth')
     const selectMonth = document.getElementById('month')
     previousMonthButton.addEventListener('click', () => {
-        const currentDate = selectMonth.valueAsDate
+        // Это не работает в FireFox:
+        // const currentDate = selectMonth.valueAsDate
+        // currentDate.setMonth(currentDate.getMonth() - 1);
+        const currentDate = getCurrentDate(selectMonth.value)
         currentDate.setMonth(currentDate.getMonth() - 1);
-        selectMonth.valueAsDate = currentDate
+        newValue = getValueForFromDateForMonthControl(currentDate)
+        selectMonth.value = newValue
         loadTransactions()
     })
     nextMonthButton.addEventListener('click', () => {
-        const currentDate = selectMonth.valueAsDate
+        // Это не работает в FireFox:
+        // const currentDate = selectMonth.valueAsDate
+        // currentDate.setMonth(currentDate.getMonth() + 1);
+        const currentDate = getCurrentDate(selectMonth.value)
         currentDate.setMonth(currentDate.getMonth() + 1);
-        selectMonth.valueAsDate = currentDate
+        newValue = getValueForFromDateForMonthControl(currentDate)
+        selectMonth.value = newValue
         loadTransactions()
     })
 }

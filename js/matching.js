@@ -255,6 +255,25 @@ const toolbar_match = {
     }
 }
 
+const setBtnPreviousNextMonthHandler = () => {
+    const previousMonthButton = document.getElementById('previousMonth')
+    const nextMonthButton = document.getElementById('nextMonth')
+    const selectMonth = document.getElementById('month')
+    previousMonthButton.addEventListener('click', () => {
+        const currentDate = selectMonth.valueAsDate
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        selectMonth.valueAsDate = currentDate
+        loadTransactions()
+    })
+    nextMonthButton.addEventListener('click', () => {
+        const currentDate = selectMonth.valueAsDate
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        selectMonth.valueAsDate = currentDate
+        loadTransactions()
+    })
+}
+
+
 $(document).ready(async () => {
 
     // EU Common el, Format
@@ -322,6 +341,7 @@ $(document).ready(async () => {
     })
     getCategoriesByType()
     loadData()
+    setBtnPreviousNextMonthHandler()
 
     console.log('ready matching')
 })

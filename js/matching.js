@@ -82,8 +82,8 @@ const setValues = (response) => {
             loadTransactions()
             console.log(event.target.value);
         });
-        const categoryColumnIndex = findColumnIndex(grid_bank, 'category')
-        grid_bank.columns[categoryColumnIndex].editable.items = response.budgets.map(budget => budget.name)
+        const budgetColumnIndex = findColumnIndex(grid_bank, 'budget')
+        grid_bank.columns[budgetColumnIndex].editable.items = response.budgets.map(budget => budget.name)
 
     }
 
@@ -313,10 +313,10 @@ $(document).ready(async () => {
             requestMatching(recid)
             // Подгружаем категории для выпадающего списка
             const transactionCategories = (grid_bank.get(recid).amount > 0 ? 'IncomeCategories' : 'ExpenseCategories')
-            grid_bank.columns[6].editable.items =
+            const categoryColumnIndex = findColumnIndex(grid_bank, 'category')
+            grid_bank.columns[categoryColumnIndex].editable.items =
             JSON.parse(localStorage.getItem(transactionCategories))
             .map(category => category.name)
-
         }
     })
     getCategoriesByType()

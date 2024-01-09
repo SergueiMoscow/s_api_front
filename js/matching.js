@@ -169,7 +169,10 @@ const sendMatchRequest = (bank_id, match_id) => {
         credentials: "same-origin",
         success: updateGridForMatched
     })
-    
+    // Firefox не работает стандатный input type='month'
+    $(() => {
+        $('#month').datepicker();
+      });    
 }
 
 let budgets = []

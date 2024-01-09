@@ -65,6 +65,10 @@ $( document ).ready(async () => {
     $("#btn-login").click(async function(){
         window.location.href = '/login.html'
     })
+    $("#btn-logout").click(async function(){
+        await logout()
+    })
+
     viewHeaderComponents();
     getMenu();
     const lastMenu = localStorage.getItem('lastMenu');

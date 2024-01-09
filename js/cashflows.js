@@ -172,16 +172,19 @@ const setValues = (response) => {
     }
     if (inputAccount && editAccount) {
         response.accounts.forEach(account => {
-            const option = document.createElement("option");
-            option.value = account.id;
-            option.textContent = account.name;
+            const option1 = document.createElement("option");
+            const option2 = document.createElement("option");
+            option1.value = account.id;
+            option1.textContent = account.name;
+            option2.value = account.id;
+            option2.textContent = account.name;
 
             // Устанавливаем активный элемент, если ID совпадает с переменной response.filter.account
             if (account.name === response.filter.account) {
-                option.selected = true;
+                option1.selected = true;
             }
-            inputAccount.appendChild(option);
-            editAccount.appendChild(option)
+            inputAccount.appendChild(option1);
+            editAccount.appendChild(option2)
         });
         // добавить обработчик события на изменение выбранного элемента в select
         inputAccount.addEventListener('change', (event) => {

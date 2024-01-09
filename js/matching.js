@@ -170,7 +170,7 @@ const sendMatchRequest = (bank_id, match_id) => {
         success: updateGridForMatched
     })
     // Firefox не работает стандатный input type='month'
-    $('#month').datepicker();
+    // $('#month').datepicker();
 }
 
 let budgets = []

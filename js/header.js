@@ -50,6 +50,9 @@ const createMenu = async (response) => {
             menu.appendChild(li);
         });
     }
+    if (!response.authorized) {
+        localStorage.removeItem('lastMenu')
+    }
 }
 
 const getMenu = async () => {

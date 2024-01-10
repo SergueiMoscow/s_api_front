@@ -79,8 +79,8 @@ const setRowsCashflow = (response) => {
             notes: el.notes,
             time: el.time,
             category: getFullCategoryName(el.category),
-            state: el.linked ? 'linked' : 'none',
-            w2ui: { style: getBgColorForOperation(el.linked ? 'linked' : 'none') }
+            state: el.bank_linked ? 'linked' : 'none',
+            w2ui: { style: getBgColorForOperation(el.bank_linked ? 'linked' : 'none') }
         }));
 
         gridCashFlows.add(rowsToAdd); // Добавить все записи за один раз

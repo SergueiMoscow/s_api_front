@@ -123,7 +123,7 @@ const getDataForMatchRequest = () => {
     const inputAccount = document.getElementById('accounts')
     const account = inputAccount.options[inputAccount.selectedIndex].text
 
-    const bank_selected = grid_bank.getChanges()
+    const bank_selected = grid_bank.getSelection()
     bank_selected.forEach(row => {
         category = category.length > row.category?.text?.length ? category : row.category.text
         budget = (budget.length > row.budget?.text?.length ? budget : row.budget?.text) || ''

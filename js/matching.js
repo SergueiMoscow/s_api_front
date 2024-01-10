@@ -124,7 +124,8 @@ const getDataForMatchRequest = () => {
     const account = inputAccount.options[inputAccount.selectedIndex].text
 
     const bank_selected = grid_bank.getSelection()
-    bank_selected.forEach(row => {
+    bank_selected.forEach(row_id => {
+        row=grid_bank.get(row_id)
         category = category.length > row.category?.text?.length ? category : row.category.text
         budget = (budget.length > row.budget?.text?.length ? budget : row.budget?.text) || ''
         notes = (notes.length > row.notes?.text?.length ? notes : row.notes) || ''

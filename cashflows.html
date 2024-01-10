@@ -11,7 +11,7 @@
     </div>
     <div class="feature col d-flex justify-content-center">
         <div class="col-md-5">
-            <label for="operation-type" class="form-label">Тип операции</label>
+            <label for="operation-type" class="form-label">Тип</label>
             <select class="form-select" id="operation-types" required="">
                 <option value="All">All</option>
             </select>
@@ -25,12 +25,20 @@
             </select>
         </div>
     </div>
-    <div class="feature col d-flex justify-content-center">
-        <div class="col-md-5">
+    <div class="feature col-md-5">
+        <div class="col-md-10">
             <label for="date-begin" class="form-label">Период</label>
             <div class="d-flex justify-content-center">
-                <input type="date" class="form-select max-10-em" id="date-begin" required="">
-                <input type="date" class="form-select max-10-em" id="date-end" required="">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <button class="btn btn-outline-secondary" type="button" id="previousPeriod">‹</button>
+                    </div>
+                    <input type="date" class="form-select max-10-em" id="date-begin" required="">
+                    <input type="date" class="form-select max-10-em" id="date-end" required="">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="button" id="nextPeriod">›</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -1,6 +1,7 @@
 import { w2ui, w2grid } from '../w2ui/js/w2ui-2.0.es6.js'
 import { ajax } from './common.js'
 import { getCategoriesByType, findColumnIndex, getBgColorForOperation, formatISOToDateTimeLocal } from './budget_common.js';
+import { DateRangePicker } from './daterangepicker.js'
 
 export let gridCashFlows;
 
@@ -12,7 +13,7 @@ const updateCashFlowGrid = (response) => {
     console.log(response)
 }
 
-const loadCashFlows = () => {
+export const loadCashFlows = () => {
     const filter = {
         date_begin: document.getElementById('date-begin').value,
         date_end: document.getElementById('date-end').value,
@@ -549,5 +550,6 @@ $(document).ready(async () => {
     setBtnSaveHandler()
     setCategory1ChangeHandler()
     disableMultiEdit()
+    new DateRangePicker()
     console.log('DocumentReady')
 })

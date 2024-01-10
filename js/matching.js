@@ -277,7 +277,7 @@ const setBtnPreviousNextMonthHandler = () => {
         // currentDate.setMonth(currentDate.getMonth() - 1);
         const currentDate = getCurrentDate(selectMonth.value)
         currentDate.setMonth(currentDate.getMonth() - 1);
-        newValue = getValueForFromDateForMonthControl(currentDate)
+        const newValue = getValueForFromDateForMonthControl(currentDate)
         selectMonth.value = newValue
         loadTransactions()
     })
@@ -287,7 +287,7 @@ const setBtnPreviousNextMonthHandler = () => {
         // currentDate.setMonth(currentDate.getMonth() + 1);
         const currentDate = getCurrentDate(selectMonth.value)
         currentDate.setMonth(currentDate.getMonth() + 1);
-        newValue = getValueForFromDateForMonthControl(currentDate)
+        const newValue = getValueForFromDateForMonthControl(currentDate)
         selectMonth.value = newValue
         loadTransactions()
     })

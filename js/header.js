@@ -77,8 +77,8 @@ $( document ).ready(async () => {
     const lastMenu = localStorage.getItem('lastMenu');
     
     if (lastMenu) {
-        updateMenuState(lastMenu); // Обновите состояние меню
-        fillContent(`${lastMenu}.html`, lastMenu); // Загрузите содержимое
+        updateMenuState(lastMenu);
+        fillContent(`${lastMenu}.html`, lastMenu);
     }    
     console.log( "ready header" );
 });

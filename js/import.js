@@ -41,8 +41,10 @@ const onBtnSendClick = () => {
     })
 }
 
-const responseHandler  = () => {
-
+const responseHandler  = (response) => {
+    if (response) {
+        alert(response.message)
+    }
 }
 
 const btnSendHandler = () => {

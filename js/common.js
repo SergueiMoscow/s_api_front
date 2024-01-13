@@ -60,7 +60,7 @@ const showError = (message) => {
             .then(response => {
                 if (!response.ok) {
                     return response.json().then(data => {
-                        throw new Error(data.error);
+                        alert(`${data.error_code}\n${data.error_message}`);
                     });
                 }
                 if (response.status == 200) {
@@ -70,7 +70,6 @@ const showError = (message) => {
             .then(data => success(data))
             .catch(e => {
                 console.error('Error: ', e)
-                alert(e.message)
             });
     };
 

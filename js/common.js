@@ -60,7 +60,7 @@ const showError = (message) => {
             .then(response => {
                 if (!response.ok) {
                     return response.json().then(data => {
-                        alert(`${data.error_code}\n${data.error_message}`);
+                        alert(`${data.error.error_code}\n${data.error.error_message}`);
                     });
                 }
                 if (response.status == 200) {
